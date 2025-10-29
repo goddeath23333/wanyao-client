@@ -1,0 +1,22 @@
+{
+  "name": "wanyao-client",
+  "version": "1.0.0",
+  "description": "万遥客户端 - 一个现代化的客户端应用程序",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["client", "application", "wanyao"],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/wanyao-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/wanyao-client/issues"
+  },
+  "homepage": "https://github.com/yourusername/wanyao-client#readme"
+}
