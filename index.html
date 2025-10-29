@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 系统监控</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: 
+                linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="a" cx="0.5" cy="0.5" r="0.5"><stop offset="0%" stop-color="%23007acc"/><stop offset="100%" stop-color="%23004a7f"/></radialGradient></defs><rect width="100" height="100" fill="url(%23a)" opacity="0.3"/></svg>');
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+        
+        /* 自定义标题栏样式 */
+        .custom-titlebar {
+            height: 32px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            -webkit-app-region: drag;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .titlebar-title {
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-left: 8px;
+        }
+        
+        .titlebar-controls {
+            display: flex;
+            gap: 4px;
+            -webkit-app-region: no-drag;
+        }
+        
+        .titlebar-button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+        
+        .titlebar-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .titlebar-button.close:hover {
+            background: #e74c3c;
+        }
+        
+        .titlebar-button.minimize:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .titlebar-button.maximize:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 窗口控制面板 */
+        .window-controls-panel {
+            position: fixed;
+            top: 40px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 200px;
+        }
+        
+        .control-group {
+            margin-bottom: 16px;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-group h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .control-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .drag-handle {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            -webkit-app-region: no-drag;
+        }
+        
+        .drag-handle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 跨平台特定样式 */
+        .platform-windows .titlebar-button {
+            border-radius: 0;
+        }
+        
+        .platform-windows .titlebar-button.close:hover {
+            background: #e74c3c;
+        }
+        
+        .platform-windows .titlebar-button.minimize:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .platform-windows .titlebar-button.maximize:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .platform-macos .titlebar-button {
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            margin-left: 4px;
+        }
+        
+        .platform-macos .titlebar-button.close {
+            background: #ff5f57;
+        }
+        
+        .platform-macos .titlebar-button.minimize {
+            background: #ffbd2e;
+        }
+        
+        .platform-macos .titlebar-button.maximize {
+            background: #28ca42;
+        }
+        
+        .platform-macos .titlebar-button:hover {
+            opacity: 0.8;
+        }
+        
+        .platform-linux .titlebar-button {
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .platform-linux .titlebar-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .window-controls-panel {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
+            
+            .control-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .custom-titlebar {
+                height: 40px;
+            }
+            
+            .titlebar-button {
+                width: 36px;
+                height: 36px;
+            }
+        }
+        
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        /* 系统监控面板 */
+        .system-monitor {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .monitor-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .hardware-info, .performance-monitor {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .info-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+        }
+        
+        /* 进度条样式 */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-fill.cpu {
+            background: linear-gradient(90deg, #2196F3, #03A9F4);
+        }
+        
+        .progress-fill.gpu {
+            background: linear-gradient(90deg, #FF9800, #FFC107);
+        }
+        
+        .progress-fill.memory {
+            background: linear-gradient(90deg, #E91E63, #F06292);
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 2px;
+        }
+        
+        /* 应用信息面板 */
+        .app-info {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        
+        .app-logo {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .app-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+        
+        .app-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .app-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .app-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .app-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .app-version {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义标题栏 -->
+    <div class="custom-titlebar">
+        <div class="titlebar-title">万遥客户端</div>
+        <div class="titlebar-controls">
+            <button class="titlebar-button minimize" onclick="minimizeWindow()" title="最小化">−</button>
+            <button class="titlebar-button maximize" onclick="toggleMaximizeWindow()" title="最大化/还原">□</button>
+            <button class="titlebar-button close" onclick="closeWindow()" title="关闭">×</button>
+        </div>
+    </div>
+    
+    <!-- 窗口控制面板 -->
+    <div class="window-controls-panel" id="controlsPanel" style="display: none;">
+        <div class="control-group">
+            <h3>窗口控制</h3>
+            <div class="control-buttons">
+                <button class="control-button" onclick="resizeToHalf()">调整到50%</button>
+                <button class="control-button" onclick="restoreOriginalSize()">恢复原始大小</button>
+                <button class="control-button" onclick="toggleMaximizeWindow()">最大化/还原</button>
+                <button class="control-button" onclick="minimizeWindow()">最小化</button>
+                <button class="control-button" onclick="closeWindow()">关闭</button>
+            </div>
+        </div>
+        <div class="control-group">
+            <h3>拖拽控制</h3>
+            <div class="control-buttons">
+                <button class="control-button" onclick="enableDrag()">启用拖拽</button>
+                <button class="control-button" onclick="disableDrag()">禁用拖拽</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 拖拽手柄 -->
+    <div class="drag-handle" id="dragHandle" title="拖拽窗口">≡</div>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 系统监控面板 -->
+        <div class="system-monitor">
+            <div class="monitor-header">
+                <h2 class="monitor-title">系统监控</h2>
+                <button class="refresh-btn" onclick="refreshSystemInfo()">🔄 刷新数据</button>
+            </div>
+            
+            <div class="monitor-grid">
+                <!-- 硬件信息 -->
+                <div class="hardware-info">
+                    <h3 class="section-title">硬件信息</h3>
+                    <div class="info-item">
+                        <span class="info-label">CPU型号</span>
+                        <span class="info-value" id="cpuModel">检测中...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GPU型号</span>
+                        <span class="info-value" id="gpuModel">检测中...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">内存型号</span>
+                        <span class="info-value" id="memoryModel">检测中...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">操作系统</span>
+                        <span class="info-value" id="osInfo">检测中...</span>
+                    </div>
+                </div>
+                
+                <!-- 性能监控 -->
+                <div class="performance-monitor">
+                    <h3 class="section-title">性能监控</h3>
+                    <div class="info-item">
+                        <span class="info-label">CPU利用率</span>
+                        <span class="info-value" id="cpuUsage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill cpu" id="cpuProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span>0%</span>
+                        <span id="cpuTemp">温度: 检测中...</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">GPU利用率</span>
+                        <span class="info-value" id="gpuUsage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill gpu" id="gpuProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span>0%</span>
+                        <span id="gpuTemp">温度: 检测中...</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">内存利用率</span>
+                        <span class="info-value" id="memoryUsage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill memory" id="memoryProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span id="memoryUsed">0 GB</span>
+                        <span id="memoryTotal">总内存: 检测中...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 应用信息面板 -->
+        <div class="app-info">
+            <div class="app-logo">🚀</div>
+            <h1 class="app-title">万遥客户端</h1>
+            <div class="app-subtitle">系统监控与性能分析工具</div>
+            
+            <div class="app-buttons">
+                <button class="app-button" onclick="showMessage('欢迎使用万遥客户端系统监控工具！')">开始使用</button>
+                <button class="app-button" onclick="toggleControlsPanel()">窗口控制</button>
+            </div>
+            
+            <div class="app-version">版本 2.0.0 | 基于 Tauri 框架 | 实时监控系统</div>
+            
+            <!-- 状态显示区域 -->
+            <div class="status-container" style="margin-top: 15px; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; font-size: 0.85rem; text-align: center;">
+                <span id="status">应用已准备就绪</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化应用
+        console.log('万遥客户端界面已加载');
+        
+        // 窗口控制状态
+        let isMaximized = false;
+        let isDraggingEnabled = true;
+        let originalSize = { width: 800, height: 600 };
+        let isTauriEnvironment = false;
+        let systemInfoInterval = null;
+        
+        // 检测Tauri环境
+        function detectTauriEnvironment() {
+            isTauriEnvironment = !!(window.__TAURI__);
+            console.log('Tauri环境检测:', isTauriEnvironment ? '是' : '否');
+            return isTauriEnvironment;
+        }
+        
+        // 获取系统信息
+        async function getSystemInfo() {
+            try {
+                console.log("=== 开始执行getSystemInfo函数 ===");
+                
+                if (detectTauriEnvironment()) {
+                    console.log("1. 检测到Tauri环境");
+                    console.log("2. 准备调用Rust后端函数get_system_info");
+                    
+                    // Tauri v2环境：调用后端Rust函数
+                    const systemInfo = await window.__TAURI__.invoke('get_system_info');
+                    console.log("3. Rust后端返回的系统信息:", systemInfo);
+                    
+                    // 检查返回的数据是否有效
+                    if (systemInfo && systemInfo.cpu_name && systemInfo.cpu_name !== '未知CPU') {
+                        console.log("4. 数据有效，标记为真实数据");
+                        systemInfo.is_simulated = false;
+                        showMessage('✓ 成功获取真实硬件信息');
+                        console.log("5. 返回真实数据给前端");
+                        return systemInfo;
+                    } else {
+                        console.log("4. 数据无效，使用模拟数据");
+                        showMessage('⚠ Rust后端返回无效数据，使用模拟数据');
+                        const simulatedData = getFallbackSystemInfo();
+                        console.log("5. 返回模拟数据给前端:", simulatedData);
+                        return simulatedData;
+                    }
+                } else {
+                    console.log("1. 检测到浏览器环境");
+                    console.log("2. 使用模拟数据");
+                    showMessage('⚠ 浏览器环境限制：无法访问真实硬件信息');
+                    const simulatedData = getFallbackSystemInfo();
+                    console.log("3. 返回模拟数据给前端:", simulatedData);
+                    return simulatedData;
+                }
+            } catch (error) {
+                console.error("=== 捕获到错误 ===");
+                console.error("错误类型:", error.name);
+                console.error("错误消息:", error.message);
+                console.error("错误堆栈:", error.stack);
+                
+                // 显示具体的错误信息
+                let errorMessage = '获取硬件信息失败: ';
+                if (error.message.includes('get_system_info')) {
+                    errorMessage += 'Rust后端函数调用失败';
+                } else if (error.message.includes('invoke')) {
+                    errorMessage += 'Tauri IPC通信失败';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showMessage('❌ ' + errorMessage);
+                
+                // 如果Rust调用失败，返回模拟数据
+                const simulatedData = {
+                    cpu_usage: Math.random() * 100,
+                    cpu_name: 'Intel(R) Core(TM) i7-11700F (模拟数据)',
+                    cpu_cores: 8,
+                    memory_total: 34359738368, // 32GB
+                    memory_used: Math.random() * 17179869184, // 0-16GB
+                    memory_usage: Math.random() * 100,
+                    gpu_name: 'NVIDIA GeForce RTX 3060 (模拟数据)',
+                    gpu_usage: Math.random() * 100,
+                    os_name: 'Windows 11',
+                    os_version: '22H2',
+                    is_simulated: true // 标记为模拟数据
+                };
+                console.log("错误处理: 返回模拟数据:", simulatedData);
+                return simulatedData;
+            }
+        }
+        
+        // 更新界面显示
+        function updateSystemInfoDisplay(systemInfo) {
+            if (!systemInfo) {
+                console.error('系统信息为空');
+                showMessage('❌ 系统信息为空');
+                return;
+            }
+            
+            // 检查是否为模拟数据
+            const isSimulated = systemInfo.is_simulated || systemInfo.cpu_name.includes('模拟数据');
+            
+            // 更新硬件信息，并标记模拟数据
+            document.getElementById('cpuModel').textContent = systemInfo.cpu_name;
+            document.getElementById('gpuModel').textContent = systemInfo.gpu_name;
+            document.getElementById('memoryModel').textContent = `${(systemInfo.memory_total / 1024 / 1024 / 1024).toFixed(1)} GB`;
+            document.getElementById('osInfo').textContent = `${systemInfo.os_name} ${systemInfo.os_version}`;
+            
+            // 添加数据来源标记
+            const dataSource = isSimulated ? ' (模拟数据)' : ' (真实数据)';
+            document.getElementById('cpuModel').textContent += dataSource;
+            document.getElementById('gpuModel').textContent += dataSource;
+            
+            // 更新性能监控
+            const cpuUsage = Math.round(systemInfo.cpu_usage);
+            document.getElementById('cpuUsage').textContent = `${cpuUsage}%`;
+            document.getElementById('cpuProgress').style.width = `${cpuUsage}%`;
+            
+            const gpuUsage = Math.round(systemInfo.gpu_usage);
+            document.getElementById('gpuUsage').textContent = `${gpuUsage}%`;
+            document.getElementById('gpuProgress').style.width = `${gpuUsage}%`;
+            
+            const memoryUsage = Math.round(systemInfo.memory_usage);
+            document.getElementById('memoryUsage').textContent = `${memoryUsage}%`;
+            document.getElementById('memoryProgress').style.width = `${memoryUsage}%`;
+            
+            // 更新内存详细信息
+            const memoryUsedGB = (systemInfo.memory_used / 1024 / 1024 / 1024).toFixed(1);
+            const memoryTotalGB = (systemInfo.memory_total / 1024 / 1024 / 1024).toFixed(1);
+            document.getElementById('memoryUsed').textContent = `${memoryUsedGB} GB`;
+            document.getElementById('memoryTotal').textContent = `总内存: ${memoryTotalGB} GB`;
+            
+            // 更新温度信息（模拟）
+            document.getElementById('cpuTemp').textContent = `温度: ${Math.round(30 + Math.random() * 50)}°C`;
+            document.getElementById('gpuTemp').textContent = `温度: ${Math.round(35 + Math.random() * 45)}°C`;
+            
+            // 更新状态栏显示数据来源
+            const statusElement = document.getElementById('status');
+            if (isSimulated) {
+                statusElement.style.background = 'rgba(255, 193, 7, 0.3)';
+                statusElement.textContent = '⚠ 当前显示模拟数据 - 无法获取真实硬件信息';
+            } else {
+                statusElement.style.background = 'rgba(76, 175, 80, 0.3)';
+                statusElement.textContent = '✓ 正在显示真实硬件信息';
+            }
+        }
+        
+        // 刷新系统信息
+        async function refreshSystemInfo() {
+            console.log('刷新系统信息...');
+            const systemInfo = await getSystemInfo();
+            updateSystemInfoDisplay(systemInfo);
+        }
+        
+        // 启动实时监控
+        function startRealTimeMonitoring() {
+            if (systemInfoInterval) {
+                clearInterval(systemInfoInterval);
+            }
+            
+            // 立即刷新一次
+            refreshSystemInfo();
+            
+            // 设置定时刷新（每2秒）
+            systemInfoInterval = setInterval(refreshSystemInfo, 2000);
+            console.log('实时监控已启动，每2秒刷新一次');
+        }
+        
+        // 停止实时监控
+        function stopRealTimeMonitoring() {
+            if (systemInfoInterval) {
+                clearInterval(systemInfoInterval);
+                systemInfoInterval = null;
+                console.log('实时监控已停止');
+            }
+        }
+        
+        // 显示消息函数
+        function showMessage(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.background = 'rgba(76, 175, 80, 0.3)';
+            
+            setTimeout(() => {
+                status.textContent = '应用已准备就绪';
+                status.style.background = 'rgba(255, 255, 255, 0.2)';
+            }, 2000);
+        }
+        
+        // 窗口控制函数
+        async function closeWindow() {
+            try {
+                if (detectTauriEnvironment()) {
+                    // Tauri v2 语法
+                    await window.__TAURI__.window.getCurrent().close();
+                } else {
+                    // 浏览器环境模拟
+                    if (confirm('确定要关闭窗口吗？')) {
+                        window.close();
+                    }
+                }
+            } catch (error) {
+                console.error('关闭窗口失败:', error);
+                showMessage('关闭窗口失败: ' + error.message);
+            }
+        }
+        
+        async function minimizeWindow() {
+            try {
+                if (detectTauriEnvironment()) {
+                    // Tauri v2 语法
+                    await window.__TAURI__.window.getCurrent().minimize();
+                    showMessage('窗口已最小化');
+                } else {
+                    // 浏览器环境模拟
+                    showMessage('最小化功能在浏览器中不可用');
+                }
+            } catch (error) {
+                console.error('最小化窗口失败:', error);
+                showMessage('最小化窗口失败: ' + error.message);
+            }
+        }
+        
+        async function toggleMaximizeWindow() {
+            try {
+                if (detectTauriEnvironment()) {
+                    // Tauri v2 语法
+                    const currentWindow = window.__TAURI__.window.getCurrent();
+                    if (isMaximized) {
+                        await currentWindow.unmaximize();
+                        isMaximized = false;
+                        showMessage('窗口已还原');
+                    } else {
+                        await currentWindow.maximize();
+                        isMaximized = true;
+                        showMessage('窗口已最大化');
+                    }
+                } else {
+                    // 浏览器环境模拟
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                        isMaximized = false;
+                        showMessage('已退出全屏模式');
+                    } else {
+                        document.documentElement.requestFullscreen();
+                        isMaximized = true;
+                        showMessage('已进入全屏模式');
+                    }
+                }
+            } catch (error) {
+                console.error('切换最大化状态失败:', error);
+                showMessage('切换最大化状态失败: ' + error.message);
+            }
+        }
+        
+        async function resizeToHalf() {
+            try {
+                if (detectTauriEnvironment()) {
+                    // Tauri v2 语法
+                    const currentWindow = window.__TAURI__.window.getCurrent();
+                    
+                    // 获取当前窗口大小
+                    const currentSize = await currentWindow.innerSize();
+                    const halfWidth = Math.max(400, Math.round(currentSize.width * 0.5));
+                    const halfHeight = Math.max(300, Math.round(currentSize.height * 0.5));
+                    
+                    // 设置新大小
+                    await currentWindow.setSize({
+                        type: 'Logical',
+                        data: { width: halfWidth, height: halfHeight }
+                    });
+                    showMessage(`窗口已调整为: ${halfWidth} × ${halfHeight}`);
+                } else {
+                    // 在浏览器中模拟
+                    const newWidth = Math.max(400, Math.round(window.outerWidth * 0.5));
+                    const newHeight = Math.max(300, Math.round(window.outerHeight * 0.5));
+                    
+                    window.resizeTo(newWidth, newHeight);
+                    showMessage(`窗口大小已调整为: ${newWidth} × ${newHeight}`);
+                }
+            } catch (error) {
+                console.error('调整窗口大小失败:', error);
+                showMessage('调整窗口大小失败: ' + error.message);
+            }
+        }
+        
+        // 恢复原始大小
+        async function restoreOriginalSize() {
+            try {
+                if (detectTauriEnvironment()) {
+                    // Tauri v2 语法
+                    const currentWindow = window.__TAURI__.window.getCurrent();
+                    
+                    await currentWindow.setSize({
+                        type: 'Logical',
+                        data: { width: originalSize.width, height: originalSize.height }
+                    });
+                    showMessage(`窗口已恢复为: ${originalSize.width} × ${originalSize.height}`);
+                } else {
+                    // 浏览器环境模拟
+                    window.resizeTo(originalSize.width, originalSize.height);
+                    showMessage(`窗口已恢复为: ${originalSize.width} × ${originalSize.height}`);
+                }
+            } catch (error) {
+                console.error('恢复窗口大小失败:', error);
+                showMessage('恢复窗口大小失败: ' + error.message);
+            }
+        }
+        
+function getFallbackSystemInfo() {
+    return {
+        cpu_usage: Math.random() * 100,
+        cpu_name: 'Intel(R) Core(TM) i7-12700K',
+        cpu_cores: 12,
+        memory_total: 17179869184, // 16GB
+        memory_used: Math.random() * 8589934592, // 0-8GB
+        memory_usage: Math.random() * 100,
+        gpu_name: 'NVIDIA GeForce RTX 3080',
+        gpu_usage: Math.random() * 100,
+        os_name: 'Windows 11',
+        os_version: '22H2'
+    };
+}
+
+
+        // 拖拽控制函数
+        function enableDrag() {
+            isDraggingEnabled = true;
+            const dragHandle = document.getElementById('dragHandle');
+            const titlebar = document.querySelector('.custom-titlebar');
+            
+            if (dragHandle) dragHandle.style.display = 'flex';
+            if (titlebar) titlebar.style.webkitAppRegion = 'drag';
+            
+            showMessage('拖拽功能已启用');
+        }
+        
+        function disableDrag() {
+            isDraggingEnabled = false;
+            const dragHandle = document.getElementById('dragHandle');
+            const titlebar = document.querySelector('.custom-titlebar');
+            
+            if (dragHandle) dragHandle.style.display = 'none';
+            if (titlebar) titlebar.style.webkitAppRegion = 'no-drag';
+            
+            showMessage('拖拽功能已禁用');
+        }
+        
+        // 窗口控制面板
+        function toggleControlsPanel() {
+            const panel = document.getElementById('controlsPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                panel.classList.add('slide-in');
+                showMessage('窗口控制面板已打开');
+            } else {
+                panel.classList.remove('slide-in');
+                panel.style.display = 'none';
+                showMessage('窗口控制面板已关闭');
+            }
+        }
+        
+        // 跨平台样式适配
+        function adaptPlatformStyles() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const body = document.body;
+            
+            // 移除现有的平台类
+            body.classList.remove('platform-windows', 'platform-macos', 'platform-linux');
+            
+            if (userAgent.includes('win')) {
+                // Windows样式
+                body.classList.add('platform-windows');
+                showMessage('Windows平台样式已应用');
+            } else if (userAgent.includes('mac')) {
+                // macOS样式
+                body.classList.add('platform-macos');
+                showMessage('macOS平台样式已应用');
+            } else {
+                // Linux和其他平台
+                body.classList.add('platform-linux');
+                showMessage('Linux平台样式已应用');
+            }
+        }
+        
+        // 显示消息
+        function showMessage(message) {
+            const statusElement = document.getElementById('status');
+            if (statusElement) {
+                statusElement.textContent = message;
+                console.log('状态消息:', message);
+            }
+        }
+        
+        // 刷新系统信息
+        async function refreshSystemInfo() {
+            try {
+                showMessage('正在刷新系统信息...');
+                const systemInfo = await getSystemInfo();
+                updateSystemInfoUI(systemInfo);
+                showMessage('系统信息刷新完成');
+            } catch (error) {
+                console.error('刷新系统信息失败:', error);
+                showMessage('刷新系统信息失败: ' + error.message);
+            }
+        }
+        
+        // 更新系统信息UI
+        function updateSystemInfoUI(systemInfo) {
+            // 更新硬件信息
+            document.getElementById('cpuModel').textContent = systemInfo.cpu_name || '未知';
+            document.getElementById('gpuModel').textContent = systemInfo.gpu_name || '未知';
+            document.getElementById('memoryModel').textContent = formatBytes(systemInfo.memory_total) || '未知';
+            document.getElementById('osInfo').textContent = `${systemInfo.os_name || '未知'} ${systemInfo.os_version || ''}`;
+            
+            // 更新性能监控
+            document.getElementById('cpuUsage').textContent = `${Math.round(systemInfo.cpu_usage || 0)}%`;
+            document.getElementById('cpuProgress').style.width = `${systemInfo.cpu_usage || 0}%`;
+            
+            document.getElementById('gpuUsage').textContent = `${Math.round(systemInfo.gpu_usage || 0)}%`;
+            document.getElementById('gpuProgress').style.width = `${systemInfo.gpu_usage || 0}%`;
+            
+            document.getElementById('memoryUsage').textContent = `${Math.round(systemInfo.memory_usage || 0)}%`;
+            document.getElementById('memoryProgress').style.width = `${systemInfo.memory_usage || 0}%`;
+            
+            // 更新内存使用情况
+            const memoryUsed = systemInfo.memory_used || 0;
+            const memoryTotal = systemInfo.memory_total || 0;
+            document.getElementById('memoryUsed').textContent = formatBytes(memoryUsed);
+            document.getElementById('memoryTotal').textContent = `总内存: ${formatBytes(memoryTotal)}`;
+        }
+        
+        // 格式化字节大小
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 启动实时监控
+        function startRealTimeMonitoring() {
+            // 停止现有的定时器
+            if (systemInfoInterval) {
+                clearInterval(systemInfoInterval);
+            }
+            
+            // 启动新的定时器，每5秒刷新一次
+            systemInfoInterval = setInterval(async () => {
+                try {
+                    const systemInfo = await getSystemInfo();
+                    updateSystemInfoUI(systemInfo);
+                } catch (error) {
+                    console.error('实时监控更新失败:', error);
+                }
+            }, 5000);
+            
+            console.log('实时监控已启动');
+        }
+        
+        // 停止实时监控
+        function stopRealTimeMonitoring() {
+            if (systemInfoInterval) {
+                clearInterval(systemInfoInterval);
+                systemInfoInterval = null;
+                console.log('实时监控已停止');
+            }
+        }
+        
+        // 更新窗口状态
+        function updateWindowState() {
+            // 在Tauri环境中更新窗口状态
+            if (isTauriEnvironment) {
+                // 这里可以添加Tauri特定的窗口状态更新逻辑
+                console.log('窗口状态已更新');
+            }
+        }
+        
+        // 初始化窗口控制
+        function initializeWindowControls() {
+            detectTauriEnvironment();
+            adaptPlatformStyles();
+            enableDrag();
+            
+            // 启动实时监控
+            startRealTimeMonitoring();
+            
+            // 添加键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'r') {
+                    e.preventDefault();
+                    refreshSystemInfo();
+                } else if (e.key === 'Escape') {
+                    // ESC键关闭控制面板
+                    const panel = document.getElementById('controlsPanel');
+                    if (panel.style.display === 'block') {
+                        toggleControlsPanel();
+                    }
+                }
+            });
+            
+            // 添加窗口大小变化监听
+            window.addEventListener('resize', () => {
+                if (isTauriEnvironment) {
+                    // 在Tauri环境中，窗口大小变化时更新状态
+                    updateWindowState();
+                }
+            });
+            
+            // 显示初始化完成消息
+            const environmentInfo = isTauriEnvironment ? 'Tauri桌面应用' : 'Web浏览器';
+            console.log(`窗口控制功能初始化完成 - 环境: ${environmentInfo}`);
+            showMessage(`万遥客户端已启动 - 系统监控功能已激活 - ${environmentInfo}`);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('万遥客户端界面已加载完成');
+            
+            // 延迟初始化，确保所有元素都已加载
+            setTimeout(() => {
+                showMessage('系统初始化完成');
+                initializeWindowControls();
+            }, 500);
+        });
+        
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', () => {
+            stopRealTimeMonitoring();
+        });
+
+
+    </script>
+</body>
+</html>

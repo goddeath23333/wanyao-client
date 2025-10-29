@@ -1,0 +1,80 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "万遥客户端",
+  "version": "1.0.0",
+  "identifier": "com.wanyao.client",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "万遥客户端",
+        "label": "main",
+        "width": 1000,
+        "height": 750,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "minimizable": true,
+        "maximizable": true,
+        "closable": true,
+        "decorations": true,
+        "transparent": false,
+        "center": true,
+        "skipTaskbar": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https: asset: http: data:;",
+      "dangerousDisableAssetCspModification": false,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Wanyao",
+    "category": "Utility",
+    "shortDescription": "万遥客户端",
+    "longDescription": "一个现代化的客户端应用程序，提供系统监控和远程连接功能",
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "wix": {
+        "language": ["zh-CN", "en-US"]
+      }
+    },
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    }
+  },
+  "plugins": {
+    "log": {
+      "level": "info",
+      "rotation": {
+        "maxAge": 7,
+        "maxSize": "10MB"
+      }
+    }
+  }
+}

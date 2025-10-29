@@ -4,12 +4,22 @@
   "description": "万遥客户端 - 一个现代化的客户端应用程序",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
-    "start": "node index.js",
+    "dev": "node server.js",
+    "start": "tauri dev",
+    "build": "tauri build",
+    "build:debug": "tauri build --debug",
+    "tauri": "tauri",
+    "server": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["client", "application", "wanyao"],
-  "author": "您的姓名",
+  "keywords": [
+    "client",
+    "application",
+    "wanyao",
+    "system-monitor",
+    "remote-desktop"
+  ],
+  "author": "Wanyao Team",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,6 +28,11 @@
   "bugs": {
     "url": "https://github.com/goddeath23333/wanyao-client/issues"
   },
-  "homepage": "https://github.com/goddeath23333/wanyao-client#readme"
-}
+  "homepage": "https://github.com/goddeath23333/wanyao-client#readme",
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.9.1"
+  }
 }

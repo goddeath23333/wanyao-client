@@ -1,0 +1,286 @@
+   1.102083200s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app_lib"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: false }/TargetInner { ..: lib_target("app_lib", ["staticlib", "cdylib", "rlib"], "E:\\万遥客户端\\src-tauri\\src\\lib.rs", Edition2021) }
+   1.102144500s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app_lib"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-6d45d10742399ab9\lib-app_lib`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.216305600s  INFO prepare_target{force=false package_id=tauri v2.9.1 target="tauri"}: cargo::core::compiler::fingerprint: fingerprint error for tauri v2.9.1/Check { test: false }/TargetInner { ..: lib_target("tauri", ["lib"], "C:\\Users\\10608\\.cargo\\registry\\src\\mirrors.tuna.tsinghua.edu.cn-4dc01642fd091eda\\tauri-2.9.1\\src\\lib.rs", Edition2021) }
+   1.216372000s  INFO prepare_target{force=false package_id=tauri v2.9.1 target="tauri"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\tauri-587f1637a6870b08\lib-tauri`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_path
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   1.268113700s  INFO prepare_target{force=false package_id=tauri-plugin-log v2.7.1 target="tauri_plugin_log"}: cargo::core::compiler::fingerprint: fingerprint error for tauri-plugin-log v2.7.1/Check { test: false }/TargetInner { ..: lib_target("tauri_plugin_log", ["lib"], "C:\\Users\\10608\\.cargo\\registry\\src\\mirrors.tuna.tsinghua.edu.cn-4dc01642fd091eda\\tauri-plugin-log-2.7.1\\src\\lib.rs", Edition2021) }
+   1.268155100s  INFO prepare_target{force=false package_id=tauri-plugin-log v2.7.1 target="tauri_plugin_log"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\tauri-plugin-log-00d59e0bdfb87e9b\lib-tauri_plugin_log`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_path
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   1.281974800s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app_lib"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: true }/TargetInner { ..: lib_target("app_lib", ["staticlib", "cdylib", "rlib"], "E:\\万遥客户端\\src-tauri\\src\\lib.rs", Edition2021) }
+   1.282029000s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app_lib"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-200fe821c3637d2b\test-lib-app_lib`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.285120400s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: false }/TargetInner { name: "app", doc: true, ..: with_path("E:\\万遥客户端\\src-tauri\\src\\main.rs", Edition2021) }
+   1.285159000s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-0e0d21ec65c499b5\bin-app`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.289432800s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: true }/TargetInner { name: "app", doc: true, ..: with_path("E:\\万遥客户端\\src-tauri\\src\\main.rs", Edition2021) }
+   1.289468700s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="app"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-7f646b6a09c1e8b6\test-bin-app`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.292393100s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hardware_test"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: false }/TargetInner { name: "hardware_test", doc: true, ..: with_path("E:\\万遥客户端\\src-tauri\\src\\bin\\hardware_test.rs", Edition2021) }
+   1.292439200s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hardware_test"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-21f49e3c004219ce\bin-hardware_test`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.296674800s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hardware_test"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: true }/TargetInner { name: "hardware_test", doc: true, ..: with_path("E:\\万遥客户端\\src-tauri\\src\\bin\\hardware_test.rs", Edition2021) }
+   1.296722600s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hardware_test"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-f7a4d761239781e1\test-bin-hardware_test`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.304554400s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hello_test"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: false }/TargetInner { name: "hello_test", doc: true, ..: with_path("E:\\万遥客户端\\src-tauri\\src\\bin\\hello_test.rs", Edition2021) }
+   1.304596100s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hello_test"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-498c821ba83592d7\bin-hello_test`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   1.309480600s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hello_test"}: cargo::core::compiler::fingerprint: fingerprint error for app v1.0.0 (E:\万遥客户端\src-tauri)/Check { test: true }/TargetInner { name: "hello_test", doc: true, ..: with_path("E:\\万遥客户端\\src-tauri\\src\\bin\\hello_test.rs", Edition2021) }
+   1.309532700s  INFO prepare_target{force=false package_id=app v1.0.0 (E:\万遥客户端\src-tauri) target="hello_test"}: cargo::core::compiler::fingerprint:     err: failed to read `E:\万遥客户端\src-tauri\target\debug\.fingerprint\app-472b3cc5d46003a5\test-bin-hello_test`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_path
+   6: git_filter_source_path
+   7: git_filter_source_path
+   8: git_filter_source_path
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+    Checking tauri v2.9.1
+    Checking tauri-plugin-log v2.7.1
+    Checking app v1.0.0 (E:\万遥客户端\src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.06s
