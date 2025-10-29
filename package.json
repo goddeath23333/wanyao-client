@@ -9,14 +9,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["client", "application", "wanyao"],
-  "author": "Your Name",
+  "author": "您的姓名",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/wanyao-client.git"
+    "url": "https://github.com/goddeath23333/wanyao-client.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/wanyao-client/issues"
+    "url": "https://github.com/goddeath23333/wanyao-client/issues"
   },
-  "homepage": "https://github.com/yourusername/wanyao-client#readme"
+  "homepage": "https://github.com/goddeath23333/wanyao-client#readme"
 }
