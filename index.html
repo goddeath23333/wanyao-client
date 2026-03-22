@@ -1,1095 +1,885 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>万遥客户端 - 系统监控</title>
+    <title>万遥客户端</title>
+    <script type="importmap">
+    {
+        "imports": {
+            "@tauri-apps/api/core": "/@tauri-apps/api/core.js",
+            "@tauri-apps/api/window": "/@tauri-apps/api/window.js",
+            "@tauri-apps/api/dpi": "/@tauri-apps/api/dpi.js",
+            "@tauri-apps/api/event": "/@tauri-apps/api/event.js",
+            "@tauri-apps/api/image": "/@tauri-apps/api/image.js",
+            "./external/tslib/tslib.es6.js": "/@tauri-apps/api/external/tslib/tslib.es6.js"
+        }
+    }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/common.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .monitor-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
         }
         
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: 
-                linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%),
-                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="a" cx="0.5" cy="0.5" r="0.5"><stop offset="0%" stop-color="%23007acc"/><stop offset="100%" stop-color="%23004a7f"/></radialGradient></defs><rect width="100" height="100" fill="url(%23a)" opacity="0.3"/></svg>');
-            height: 100vh;
+        .monitor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            color: white;
-            overflow: hidden;
-            backdrop-filter: blur(20px);
+            gap: 12px;
         }
         
-        /* 自定义标题栏样式 */
-        .custom-titlebar {
-            height: 32px;
-            background: rgba(0, 0, 0, 0.3);
+        .monitor-card__header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 8px;
-            -webkit-app-region: drag;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
         }
         
-        .titlebar-title {
-            font-size: 13px;
-            font-weight: 500;
-            opacity: 0.9;
-            margin-left: 8px;
-        }
-        
-        .titlebar-controls {
-            display: flex;
-            gap: 4px;
-            -webkit-app-region: no-drag;
-        }
-        
-        .titlebar-button {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: transparent;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
+        .monitor-card__icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gradient);
+            border-radius: var(--border-radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-            border-radius: 4px;
+            font-size: 20px;
+            flex-shrink: 0;
         }
         
-        .titlebar-button:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .titlebar-button.close:hover {
-            background: #e74c3c;
-        }
-        
-        .titlebar-button.minimize:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .titlebar-button.maximize:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* 窗口控制面板 */
-        .window-controls-panel {
-            position: fixed;
-            top: 40px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 16px;
-            z-index: 1000;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 200px;
-        }
-        
-        .control-group {
-            margin-bottom: 16px;
-        }
-        
-        .control-group:last-child {
-            margin-bottom: 0;
-        }
-        
-        .control-group h3 {
-            font-size: 14px;
-            margin-bottom: 8px;
-            opacity: 0.9;
-            font-weight: 500;
-        }
-        
-        .control-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-        
-        .control-button {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s ease;
-        }
-        
-        .control-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-        
-        .drag-handle {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 20px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            cursor: move;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            -webkit-app-region: no-drag;
-        }
-        
-        .drag-handle:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* 跨平台特定样式 */
-        .platform-windows .titlebar-button {
-            border-radius: 0;
-        }
-        
-        .platform-windows .titlebar-button.close:hover {
-            background: #e74c3c;
-        }
-        
-        .platform-windows .titlebar-button.minimize:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .platform-windows .titlebar-button.maximize:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .platform-macos .titlebar-button {
-            width: 28px;
-            height: 28px;
-            border-radius: 14px;
-            margin-left: 4px;
-        }
-        
-        .platform-macos .titlebar-button.close {
-            background: #ff5f57;
-        }
-        
-        .platform-macos .titlebar-button.minimize {
-            background: #ffbd2e;
-        }
-        
-        .platform-macos .titlebar-button.maximize {
-            background: #28ca42;
-        }
-        
-        .platform-macos .titlebar-button:hover {
-            opacity: 0.8;
-        }
-        
-        .platform-linux .titlebar-button {
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .platform-linux .titlebar-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 600px) {
-            .window-controls-panel {
-                right: 10px;
-                left: 10px;
-                min-width: auto;
-            }
-            
-            .control-buttons {
-                grid-template-columns: 1fr;
-            }
-            
-            .custom-titlebar {
-                height: 40px;
-            }
-            
-            .titlebar-button {
-                width: 36px;
-                height: 36px;
-            }
-        }
-        
-        /* 动画效果 */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-        
-        /* 主内容区域 */
-        .main-content {
+        .monitor-card__info {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 20px;
+            min-width: 0;
         }
         
-        /* 系统监控面板 */
-        .system-monitor {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        }
-        
-        .monitor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .monitor-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: white;
-        }
-        
-        .refresh-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-        
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-        }
-        
-        .monitor-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .hardware-info, .performance-monitor {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .info-value {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: white;
-        }
-        
-        /* 进度条样式 */
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+        .monitor-card__name {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            white-space: nowrap;
             overflow: hidden;
-            margin: 5px 0;
+            text-overflow: ellipsis;
         }
         
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-        
-        .progress-fill.cpu {
-            background: linear-gradient(90deg, #2196F3, #03A9F4);
-        }
-        
-        .progress-fill.gpu {
-            background: linear-gradient(90deg, #FF9800, #FFC107);
-        }
-        
-        .progress-fill.memory {
-            background: linear-gradient(90deg, #E91E63, #F06292);
-        }
-        
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.7);
+        .monitor-card__detail {
+            font-size: 11px;
+            color: var(--text-tertiary);
             margin-top: 2px;
         }
         
-        /* 应用信息面板 */
-        .app-info {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
-        
-        .app-logo {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .app-title {
-            font-size: 2rem;
-            font-weight: 300;
-            margin-bottom: 5px;
-        }
-        
-        .app-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-        
-        .app-buttons {
+        .monitor-card__usage {
             display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+        
+        .monitor-card__value {
+            font-size: 32px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            line-height: 1;
+        }
+        
+        .monitor-card__unit {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .monitor-card__bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .monitor-card__bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .monitor-card__bar-fill.cpu {
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+        }
+        
+        .monitor-card__bar-fill.memory {
+            background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+        }
+        
+        .monitor-card__bar-fill.gpu {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        }
+        
+        .chart-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .chart-legend__item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .chart-legend__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .chart-legend__dot.cpu { background: #60a5fa; }
+        .chart-legend__dot.memory { background: #a78bfa; }
+        .chart-legend__dot.gpu { background: #fbbf24; }
+        
+        .chart-wrapper {
+            height: 180px;
+            position: relative;
+        }
+        
+        @media (max-width: 900px) {
+            .monitor-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .serial-assistant {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+        }
+        
+        .serial-assistant__config {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 16px;
+        }
+        
+        .config-row {
+            display: flex;
+            flex-wrap: wrap;
             gap: 12px;
-            justify-content: center;
-            margin-top: 20px;
+            margin-bottom: 12px;
         }
         
-        .app-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            color: white;
-            font-size: 0.9rem;
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 120px;
+        }
+        
+        .config-item__label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        .config-item__control {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .config-item__control .select {
+            flex: 1;
+        }
+        
+        .select {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            color: var(--text-primary);
+            font-size: 13px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
         }
         
-        .app-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+        .select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
         }
         
-        .app-version {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            opacity: 0.7;
+        .config-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: var(--border-radius-md);
+        }
+        
+        .status-indicator::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-indicator--disconnected {
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+        }
+        
+        .status-indicator--disconnected::before {
+            background: var(--text-tertiary);
+        }
+        
+        .status-indicator--connected {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+        
+        .status-indicator--connected::before {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .serial-assistant__main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            min-height: 0;
+        }
+        
+        .serial-assistant__receive,
+        .serial-assistant__send {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+        }
+        
+        .receive-header,
+        .send-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+        
+        .receive-header__title,
+        .send-header__title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .receive-header__actions,
+        .send-header__actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        
+        .checkbox-label input {
+            accent-color: var(--accent-primary);
+        }
+        
+        .btn--sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        
+        .receive-area {
+            flex: 1;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-y: auto;
+            background: var(--bg-primary);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .receive-footer,
+        .send-actions {
+            padding: 8px 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .send-area {
+            flex: 1;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+            border: none;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            resize: none;
+        }
+        
+        .send-area:focus {
+            outline: none;
+        }
+        
+        .send-area::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .serial-assistant__quick-send {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: 12px 16px;
+        }
+        
+        .quick-send__title {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+        
+        .quick-send__buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .message-line {
+            margin-bottom: 4px;
+        }
+        
+        .message-line--tx {
+            color: var(--info);
+        }
+        
+        .message-line--rx {
+            color: var(--success);
+        }
+        
+        .message-timestamp {
+            color: var(--text-tertiary);
+            margin-right: 8px;
+        }
+        
+        .message-direction {
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 1000px) {
+            .serial-assistant__main {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 自定义标题栏 -->
-    <div class="custom-titlebar">
-        <div class="titlebar-title">万遥客户端</div>
-        <div class="titlebar-controls">
-            <button class="titlebar-button minimize" onclick="minimizeWindow()" title="最小化">−</button>
-            <button class="titlebar-button maximize" onclick="toggleMaximizeWindow()" title="最大化/还原">□</button>
-            <button class="titlebar-button close" onclick="closeWindow()" title="关闭">×</button>
-        </div>
-    </div>
-    
-    <!-- 窗口控制面板 -->
-    <div class="window-controls-panel" id="controlsPanel" style="display: none;">
-        <div class="control-group">
-            <h3>窗口控制</h3>
-            <div class="control-buttons">
-                <button class="control-button" onclick="resizeToHalf()">调整到50%</button>
-                <button class="control-button" onclick="restoreOriginalSize()">恢复原始大小</button>
-                <button class="control-button" onclick="toggleMaximizeWindow()">最大化/还原</button>
-                <button class="control-button" onclick="minimizeWindow()">最小化</button>
-                <button class="control-button" onclick="closeWindow()">关闭</button>
+    <div class="app-container">
+        <div class="titlebar">
+            <div class="titlebar__title">
+                <img src="css/logo.png" class="titlebar__logo" alt="万遥">
+                <span>万遥客户端</span>
+            </div>
+            <div class="titlebar__controls">
+                <button class="titlebar__btn" onclick="minimizeWindow()" title="最小化">─</button>
+                <button class="titlebar__btn" onclick="toggleMaximizeWindow()" title="最大化">□</button>
+                <button class="titlebar__btn titlebar__btn--close" onclick="closeWindow()" title="关闭">✕</button>
             </div>
         </div>
-        <div class="control-group">
-            <h3>拖拽控制</h3>
-            <div class="control-buttons">
-                <button class="control-button" onclick="enableDrag()">启用拖拽</button>
-                <button class="control-button" onclick="disableDrag()">禁用拖拽</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 拖拽手柄 -->
-    <div class="drag-handle" id="dragHandle" title="拖拽窗口">≡</div>
-    
-    <!-- 主内容区域 -->
-    <div class="main-content">
-        <!-- 系统监控面板 -->
-        <div class="system-monitor">
-            <div class="monitor-header">
-                <h2 class="monitor-title">系统监控</h2>
-                <button class="refresh-btn" onclick="refreshSystemInfo()">🔄 刷新数据</button>
-            </div>
-            
-            <div class="monitor-grid">
-                <!-- 硬件信息 -->
-                <div class="hardware-info">
-                    <h3 class="section-title">硬件信息</h3>
-                    <div class="info-item">
-                        <span class="info-label">CPU型号</span>
-                        <span class="info-value" id="cpuModel">检测中...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">GPU型号</span>
-                        <span class="info-value" id="gpuModel">检测中...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">内存型号</span>
-                        <span class="info-value" id="memoryModel">检测中...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">操作系统</span>
-                        <span class="info-value" id="osInfo">检测中...</span>
+        
+        <div class="main-wrapper">
+            <aside class="sidebar">
+                <div class="sidebar__header">
+                    <div class="sidebar__logo">
+                        <img src="css/logo.png" class="sidebar__logo-icon" alt="万遥">
+                        <span class="sidebar__logo-text">万遥</span>
                     </div>
                 </div>
                 
-                <!-- 性能监控 -->
-                <div class="performance-monitor">
-                    <h3 class="section-title">性能监控</h3>
-                    <div class="info-item">
-                        <span class="info-label">CPU利用率</span>
-                        <span class="info-value" id="cpuUsage">0%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill cpu" id="cpuProgress" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-info">
-                        <span>0%</span>
-                        <span id="cpuTemp">温度: 检测中...</span>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="info-label">GPU利用率</span>
-                        <span class="info-value" id="gpuUsage">0%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill gpu" id="gpuProgress" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-info">
-                        <span>0%</span>
-                        <span id="gpuTemp">温度: 检测中...</span>
+                <nav class="sidebar__nav">
+                    <div class="nav-section">
+                        <div class="nav-section__title">主要功能</div>
+                        <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                            <span class="nav-item__icon">📊</span>
+                            <span class="nav-item__text">仪表盘</span>
+                        </div>
+                        <div class="nav-item" data-page="serial" onclick="navigateTo('serial')">
+                            <span class="nav-item__icon">🔌</span>
+                            <span class="nav-item__text">串口助手</span>
+                        </div>
+                        <div class="nav-item" data-page="network" onclick="navigateTo('network')">
+                            <span class="nav-item__icon">🌐</span>
+                            <span class="nav-item__text">网络助手</span>
+                        </div>
+                        <div class="nav-item" data-page="flasher" onclick="navigateTo('flasher')">
+                            <span class="nav-item__icon">💾</span>
+                            <span class="nav-item__text">固件烧录</span>
+                        </div>
                     </div>
                     
-                    <div class="info-item">
-                        <span class="info-label">内存利用率</span>
-                        <span class="info-value" id="memoryUsage">0%</span>
+                    <div class="nav-section">
+                        <div class="nav-section__title">数据分析</div>
+                        <div class="nav-item" data-page="visualization" onclick="navigateTo('visualization')">
+                            <span class="nav-item__icon">📈</span>
+                            <span class="nav-item__text">数据可视化</span>
+                        </div>
+                        <div class="nav-item" data-page="tester" onclick="navigateTo('tester')">
+                            <span class="nav-item__icon">🧪</span>
+                            <span class="nav-item__text">自动化测试</span>
+                        </div>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill memory" id="memoryProgress" style="width: 0%"></div>
+                    
+                    <div class="nav-section">
+                        <div class="nav-section__title">系统</div>
+                        <div class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+                            <span class="nav-item__icon">⚙️</span>
+                            <span class="nav-item__text">设置</span>
+                        </div>
                     </div>
-                    <div class="progress-info">
-                        <span id="memoryUsed">0 GB</span>
-                        <span id="memoryTotal">总内存: 检测中...</span>
+                </nav>
+                
+                <div class="sidebar__footer">
+                    <div class="nav-item" onclick="toggleSidebar()">
+                        <span class="nav-item__icon">◀</span>
+                        <span class="nav-item__text">收起侧边栏</span>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- 应用信息面板 -->
-        <div class="app-info">
-            <div class="app-logo">🚀</div>
-            <h1 class="app-title">万遥客户端</h1>
-            <div class="app-subtitle">系统监控与性能分析工具</div>
+            </aside>
             
-            <div class="app-buttons">
-                <button class="app-button" onclick="showMessage('欢迎使用万遥客户端系统监控工具！')">开始使用</button>
-                <button class="app-button" onclick="toggleControlsPanel()">窗口控制</button>
-            </div>
-            
-            <div class="app-version">版本 2.0.0 | 基于 Tauri 框架 | 实时监控系统</div>
-            
-            <!-- 状态显示区域 -->
-            <div class="status-container" style="margin-top: 15px; padding: 8px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; font-size: 0.85rem; text-align: center;">
-                <span id="status">应用已准备就绪</span>
-            </div>
+            <main class="content">
+                <div class="content__header">
+                    <h1 class="content__title">仪表盘</h1>
+                    <div class="content__actions">
+                        <button class="btn btn--ghost" onclick="toggleTheme()">🌓 切换主题</button>
+                    </div>
+                </div>
+                
+                <div class="content__body">
+                    <div id="page-dashboard" class="page active">
+                        <div class="dashboard">
+                            <div class="dashboard__section">
+                                <div class="dashboard__section-title">系统监控</div>
+                                <div class="monitor-section">
+                                    <div class="monitor-card">
+                                        <div class="monitor-card__header">
+                                            <div class="monitor-card__icon">🖥️</div>
+                                            <div class="monitor-card__info">
+                                                <div class="monitor-card__name" id="hwCpuName">检测中...</div>
+                                                <div class="monitor-card__detail" id="statCpuCores">-- 核心</div>
+                                            </div>
+                                        </div>
+                                        <div class="monitor-card__usage">
+                                            <span class="monitor-card__value" id="statCpuValue">--</span>
+                                            <span class="monitor-card__unit">%</span>
+                                        </div>
+                                        <div class="monitor-card__bar">
+                                            <div class="monitor-card__bar-fill cpu" id="statCpuBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="monitor-card">
+                                        <div class="monitor-card__header">
+                                            <div class="monitor-card__icon">💾</div>
+                                            <div class="monitor-card__info">
+                                                <div class="monitor-card__name" id="hwMemorySize">检测中...</div>
+                                                <div class="monitor-card__detail" id="statMemoryDetail">-- / --</div>
+                                            </div>
+                                        </div>
+                                        <div class="monitor-card__usage">
+                                            <span class="monitor-card__value" id="statMemoryValue">--</span>
+                                            <span class="monitor-card__unit">%</span>
+                                        </div>
+                                        <div class="monitor-card__bar">
+                                            <div class="monitor-card__bar-fill memory" id="statMemoryBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="monitor-card" id="gpuCard">
+                                        <div class="monitor-card__header">
+                                            <div class="monitor-card__icon">🎮</div>
+                                            <div class="monitor-card__info">
+                                                <div class="monitor-card__name" id="hwGpuName">检测中...</div>
+                                                <div class="monitor-card__detail">GPU 显存</div>
+                                            </div>
+                                        </div>
+                                        <div class="monitor-card__usage">
+                                            <span class="monitor-card__value" id="statGpuValue">--</span>
+                                            <span class="monitor-card__unit">%</span>
+                                        </div>
+                                        <div class="monitor-card__bar">
+                                            <div class="monitor-card__bar-fill gpu" id="statGpuBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="gpuContainer" class="monitor-section" style="display: none;"></div>
+                            </div>
+                            
+                            <div class="dashboard__section">
+                                <div class="dashboard__section-title">使用率趋势</div>
+                                <div class="chart-section">
+                                    <div class="chart-header">
+                                        <span class="chart-title">最近 60 秒</span>
+                                        <div class="chart-legend">
+                                            <div class="chart-legend__item">
+                                                <span class="chart-legend__dot cpu"></span>
+                                                <span>CPU</span>
+                                            </div>
+                                            <div class="chart-legend__item">
+                                                <span class="chart-legend__dot memory"></span>
+                                                <span>内存</span>
+                                            </div>
+                                            <div class="chart-legend__item">
+                                                <span class="chart-legend__dot gpu"></span>
+                                                <span>GPU</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="usageChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="dashboard__section">
+                                <div class="dashboard__section-title">功能模块</div>
+                                <div class="cards-grid">
+                                    <div class="card" onclick="navigateTo('serial')">
+                                        <div class="card__icon">🔌</div>
+                                        <div class="card__title">串口助手</div>
+                                        <div class="card__desc">串口通信调试工具，支持数据收发、波特率设置等功能</div>
+                                        <div class="card__status">
+                                            <span class="card__status-dot"></span>
+                                            <span>可用</span>
+                                        </div>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('network')">
+                                        <div class="card__icon">🌐</div>
+                                        <div class="card__title">网络助手</div>
+                                        <div class="card__desc">TCP/UDP 网络调试工具，支持客户端和服务器模式</div>
+                                        <div class="card__status">
+                                            <span class="card__status-dot warning"></span>
+                                            <span>开发中</span>
+                                        </div>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('flasher')">
+                                        <div class="card__icon">💾</div>
+                                        <div class="card__title">固件烧录</div>
+                                        <div class="card__desc">支持 STC/STM32/ESP32 等芯片的固件烧录工具</div>
+                                        <div class="card__status">
+                                            <span class="card__status-dot warning"></span>
+                                            <span>开发中</span>
+                                        </div>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('visualization')">
+                                        <div class="card__icon">📈</div>
+                                        <div class="card__title">数据可视化</div>
+                                        <div class="card__desc">实时数据波形显示，支持多通道数据展示</div>
+                                        <div class="card__status">
+                                            <span class="card__status-dot warning"></span>
+                                            <span>开发中</span>
+                                        </div>
+                                    </div>
+                                    <div class="card" onclick="navigateTo('tester')">
+                                        <div class="card__icon">🧪</div>
+                                        <div class="card__title">自动化测试</div>
+                                        <div class="card__desc">可编程自动化测试框架，支持脚本编写和报告生成</div>
+                                        <div class="card__status">
+                                            <span class="card__status-dot warning"></span>
+                                            <span>开发中</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="page-serial" class="page">
+                        <div class="serial-assistant">
+                            <div class="serial-assistant__config">
+                                <div class="config-row">
+                                    <div class="config-item">
+                                        <label class="config-item__label">串口</label>
+                                        <div class="config-item__control">
+                                            <select id="serialPortSelect" class="select">
+                                                <option value="">选择串口...</option>
+                                            </select>
+                                            <button class="btn btn--ghost" onclick="refreshSerialPorts()" title="刷新">🔄</button>
+                                        </div>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">波特率</label>
+                                        <select id="baudRateSelect" class="select">
+                                            <option value="9600">9600</option>
+                                            <option value="19200">19200</option>
+                                            <option value="38400">38400</option>
+                                            <option value="57600">57600</option>
+                                            <option value="115200" selected>115200</option>
+                                            <option value="230400">230400</option>
+                                            <option value="460800">460800</option>
+                                            <option value="921600">921600</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">数据位</label>
+                                        <select id="dataBitsSelect" class="select">
+                                            <option value="8" selected>8</option>
+                                            <option value="7">7</option>
+                                            <option value="6">6</option>
+                                            <option value="5">5</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">停止位</label>
+                                        <select id="stopBitsSelect" class="select">
+                                            <option value="1" selected>1</option>
+                                            <option value="2">2</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">校验位</label>
+                                        <select id="paritySelect" class="select">
+                                            <option value="None" selected>无</option>
+                                            <option value="Odd">奇校验</option>
+                                            <option value="Even">偶校验</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">流控制</label>
+                                        <select id="flowControlSelect" class="select">
+                                            <option value="None" selected>无</option>
+                                            <option value="Software">软件</option>
+                                            <option value="Hardware">硬件</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="config-actions">
+                                    <button id="serialConnectBtn" class="btn btn--primary" onclick="toggleSerialConnection()">打开串口</button>
+                                    <span id="serialStatus" class="status-indicator status-indicator--disconnected">未连接</span>
+                                </div>
+                            </div>
+                            
+                            <div class="serial-assistant__main">
+                                <div class="serial-assistant__receive">
+                                    <div class="receive-header">
+                                        <span class="receive-header__title">接收区</span>
+                                        <div class="receive-header__actions">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="hexDisplayCheck"> 十六进制显示
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="timestampCheck" checked> 时间戳
+                                            </label>
+                                            <button class="btn btn--ghost btn--sm" onclick="clearReceiveArea()">清空</button>
+                                        </div>
+                                    </div>
+                                    <div id="receiveArea" class="receive-area"></div>
+                                    <div class="receive-footer">
+                                        <span id="receiveCount">接收: 0 字节</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="serial-assistant__send">
+                                    <div class="send-header">
+                                        <span class="send-header__title">发送区</span>
+                                        <div class="send-header__actions">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="hexSendCheck"> 十六进制发送
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="appendNewlineCheck" checked> 追加换行
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <textarea id="sendArea" class="send-area" placeholder="输入要发送的数据..."></textarea>
+                                    <div class="send-actions">
+                                        <button class="btn btn--primary" onclick="sendSerialData()">发送</button>
+                                        <span id="sendCount">发送: 0 字节</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="serial-assistant__quick-send">
+                                <div class="quick-send__title">快捷发送</div>
+                                <div class="quick-send__buttons">
+                                    <button class="btn btn--secondary btn--sm" onclick="quickSend('AT')">AT</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="quickSend('AT+RST')">AT+RST</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="quickSend('AT+GMR')">AT+GMR</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="quickSend('AT+CWLAP')">AT+CWLAP</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="quickSend('\\r\\n')">\\r\\n</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="page-network" class="page">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">🌐</div>
+                            <div class="empty-state__text">网络助手模块开发中...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="page-flasher" class="page">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">💾</div>
+                            <div class="empty-state__text">固件烧录模块开发中...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="page-visualization" class="page">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">📈</div>
+                            <div class="empty-state__text">数据可视化模块开发中...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="page-tester" class="page">
+                        <div class="empty-state">
+                            <div class="empty-state__icon">🧪</div>
+                            <div class="empty-state__text">自动化测试模块开发中...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="page-settings" class="page">
+                        <div class="dashboard">
+                            <div class="dashboard__section">
+                                <div class="dashboard__section-title">外观设置</div>
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-card__label">主题模式</div>
+                                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                            <button class="btn btn--secondary" onclick="setTheme('dark')">深色</button>
+                                            <button class="btn btn--secondary" onclick="setTheme('light')">浅色</button>
+                                            <button class="btn btn--secondary" onclick="setTheme('system')">跟随系统</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="dashboard__section">
+                                <div class="dashboard__section-title">Python 环境</div>
+                                <div class="stat-card">
+                                    <div class="stat-card__label">嵌入式 Python</div>
+                                    <div style="margin-top: 12px;">
+                                        <button class="btn btn--primary" onclick="checkPythonVersion()">检查版本</button>
+                                        <button class="btn btn--secondary" onclick="runPythonTest()" style="margin-left: 8px;">运行测试</button>
+                                    </div>
+                                    <div id="pythonOutput" style="margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--border-radius-md); font-family: var(--font-mono); font-size: 13px; min-height: 60px;">
+                                        点击按钮检查 Python 环境
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="dashboard__section">
+                                <div class="dashboard__section-title">关于</div>
+                                <div class="stat-card">
+                                    <div class="stat-card__label">版本信息</div>
+                                    <div class="stat-card__value" style="font-size: 16px; margin-top: 8px;">万遥客户端 v2.0.0</div>
+                                    <div style="color: var(--text-tertiary); font-size: 13px; margin-top: 8px;">
+                                        基于 Tauri 框架构建的嵌入式开发工具
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <script>
-        // 初始化应用
-        console.log('万遥客户端界面已加载');
+    <script type="module">
+        import { detectTauriEnvironment, initTheme, setTheme, toggleTheme, navigateTo, toggleSidebar } from './js/common.js';
+        import { startMonitoring, stopMonitoring, initChart } from './js/system-monitor.js';
+        import { closeWindow, minimizeWindow, toggleMaximizeWindow } from './js/window-controls.js';
+        import { checkPythonVersion, runPythonTest } from './js/python-module.js';
+        import { 
+            refreshSerialPorts, 
+            toggleSerialConnection, 
+            sendSerialData, 
+            clearReceiveArea, 
+            quickSend,
+            initSerialAssistant 
+        } from './js/serial.js';
         
-        // 窗口控制状态
-        let isMaximized = false;
-        let isDraggingEnabled = true;
-        let originalSize = { width: 800, height: 600 };
-        let isTauriEnvironment = false;
-        let systemInfoInterval = null;
+        window.closeWindow = closeWindow;
+        window.minimizeWindow = minimizeWindow;
+        window.toggleMaximizeWindow = toggleMaximizeWindow;
+        window.navigateTo = navigateTo;
+        window.toggleSidebar = toggleSidebar;
+        window.setTheme = setTheme;
+        window.toggleTheme = toggleTheme;
+        window.checkPythonVersion = checkPythonVersion;
+        window.runPythonTest = runPythonTest;
+        window.refreshSerialPorts = refreshSerialPorts;
+        window.toggleSerialConnection = toggleSerialConnection;
+        window.sendSerialData = sendSerialData;
+        window.clearReceiveArea = clearReceiveArea;
+        window.quickSend = quickSend;
         
-        // 检测Tauri环境
-        function detectTauriEnvironment() {
-            isTauriEnvironment = !!(window.__TAURI__);
-            console.log('Tauri环境检测:', isTauriEnvironment ? '是' : '否');
-            return isTauriEnvironment;
+        async function initApp() {
+            await detectTauriEnvironment();
+            initTheme();
+            initChart();
+            startMonitoring();
+            initSerialAssistant();
+            console.log('万遥客户端已启动');
         }
         
-        // 获取系统信息
-        async function getSystemInfo() {
-            try {
-                console.log("=== 开始执行getSystemInfo函数 ===");
-                
-                if (detectTauriEnvironment()) {
-                    console.log("1. 检测到Tauri环境");
-                    console.log("2. 准备调用Rust后端函数get_system_info");
-                    
-                    // Tauri v2环境：调用后端Rust函数
-                    const systemInfo = await window.__TAURI__.invoke('get_system_info');
-                    console.log("3. Rust后端返回的系统信息:", systemInfo);
-                    
-                    // 检查返回的数据是否有效
-                    if (systemInfo && systemInfo.cpu_name && systemInfo.cpu_name !== '未知CPU') {
-                        console.log("4. 数据有效，标记为真实数据");
-                        systemInfo.is_simulated = false;
-                        showMessage('✓ 成功获取真实硬件信息');
-                        console.log("5. 返回真实数据给前端");
-                        return systemInfo;
-                    } else {
-                        console.log("4. 数据无效，使用模拟数据");
-                        showMessage('⚠ Rust后端返回无效数据，使用模拟数据');
-                        const simulatedData = getFallbackSystemInfo();
-                        console.log("5. 返回模拟数据给前端:", simulatedData);
-                        return simulatedData;
-                    }
-                } else {
-                    console.log("1. 检测到浏览器环境");
-                    console.log("2. 使用模拟数据");
-                    showMessage('⚠ 浏览器环境限制：无法访问真实硬件信息');
-                    const simulatedData = getFallbackSystemInfo();
-                    console.log("3. 返回模拟数据给前端:", simulatedData);
-                    return simulatedData;
-                }
-            } catch (error) {
-                console.error("=== 捕获到错误 ===");
-                console.error("错误类型:", error.name);
-                console.error("错误消息:", error.message);
-                console.error("错误堆栈:", error.stack);
-                
-                // 显示具体的错误信息
-                let errorMessage = '获取硬件信息失败: ';
-                if (error.message.includes('get_system_info')) {
-                    errorMessage += 'Rust后端函数调用失败';
-                } else if (error.message.includes('invoke')) {
-                    errorMessage += 'Tauri IPC通信失败';
-                } else {
-                    errorMessage += error.message;
-                }
-                
-                showMessage('❌ ' + errorMessage);
-                
-                // 如果Rust调用失败，返回模拟数据
-                const simulatedData = {
-                    cpu_usage: Math.random() * 100,
-                    cpu_name: 'Intel(R) Core(TM) i7-11700F (模拟数据)',
-                    cpu_cores: 8,
-                    memory_total: 34359738368, // 32GB
-                    memory_used: Math.random() * 17179869184, // 0-16GB
-                    memory_usage: Math.random() * 100,
-                    gpu_name: 'NVIDIA GeForce RTX 3060 (模拟数据)',
-                    gpu_usage: Math.random() * 100,
-                    os_name: 'Windows 11',
-                    os_version: '22H2',
-                    is_simulated: true // 标记为模拟数据
-                };
-                console.log("错误处理: 返回模拟数据:", simulatedData);
-                return simulatedData;
-            }
-        }
-        
-        // 更新界面显示
-        function updateSystemInfoDisplay(systemInfo) {
-            if (!systemInfo) {
-                console.error('系统信息为空');
-                showMessage('❌ 系统信息为空');
-                return;
-            }
-            
-            // 检查是否为模拟数据
-            const isSimulated = systemInfo.is_simulated || systemInfo.cpu_name.includes('模拟数据');
-            
-            // 更新硬件信息，并标记模拟数据
-            document.getElementById('cpuModel').textContent = systemInfo.cpu_name;
-            document.getElementById('gpuModel').textContent = systemInfo.gpu_name;
-            document.getElementById('memoryModel').textContent = `${(systemInfo.memory_total / 1024 / 1024 / 1024).toFixed(1)} GB`;
-            document.getElementById('osInfo').textContent = `${systemInfo.os_name} ${systemInfo.os_version}`;
-            
-            // 添加数据来源标记
-            const dataSource = isSimulated ? ' (模拟数据)' : ' (真实数据)';
-            document.getElementById('cpuModel').textContent += dataSource;
-            document.getElementById('gpuModel').textContent += dataSource;
-            
-            // 更新性能监控
-            const cpuUsage = Math.round(systemInfo.cpu_usage);
-            document.getElementById('cpuUsage').textContent = `${cpuUsage}%`;
-            document.getElementById('cpuProgress').style.width = `${cpuUsage}%`;
-            
-            const gpuUsage = Math.round(systemInfo.gpu_usage);
-            document.getElementById('gpuUsage').textContent = `${gpuUsage}%`;
-            document.getElementById('gpuProgress').style.width = `${gpuUsage}%`;
-            
-            const memoryUsage = Math.round(systemInfo.memory_usage);
-            document.getElementById('memoryUsage').textContent = `${memoryUsage}%`;
-            document.getElementById('memoryProgress').style.width = `${memoryUsage}%`;
-            
-            // 更新内存详细信息
-            const memoryUsedGB = (systemInfo.memory_used / 1024 / 1024 / 1024).toFixed(1);
-            const memoryTotalGB = (systemInfo.memory_total / 1024 / 1024 / 1024).toFixed(1);
-            document.getElementById('memoryUsed').textContent = `${memoryUsedGB} GB`;
-            document.getElementById('memoryTotal').textContent = `总内存: ${memoryTotalGB} GB`;
-            
-            // 更新温度信息（模拟）
-            document.getElementById('cpuTemp').textContent = `温度: ${Math.round(30 + Math.random() * 50)}°C`;
-            document.getElementById('gpuTemp').textContent = `温度: ${Math.round(35 + Math.random() * 45)}°C`;
-            
-            // 更新状态栏显示数据来源
-            const statusElement = document.getElementById('status');
-            if (isSimulated) {
-                statusElement.style.background = 'rgba(255, 193, 7, 0.3)';
-                statusElement.textContent = '⚠ 当前显示模拟数据 - 无法获取真实硬件信息';
-            } else {
-                statusElement.style.background = 'rgba(76, 175, 80, 0.3)';
-                statusElement.textContent = '✓ 正在显示真实硬件信息';
-            }
-        }
-        
-        // 刷新系统信息
-        async function refreshSystemInfo() {
-            console.log('刷新系统信息...');
-            const systemInfo = await getSystemInfo();
-            updateSystemInfoDisplay(systemInfo);
-        }
-        
-        // 启动实时监控
-        function startRealTimeMonitoring() {
-            if (systemInfoInterval) {
-                clearInterval(systemInfoInterval);
-            }
-            
-            // 立即刷新一次
-            refreshSystemInfo();
-            
-            // 设置定时刷新（每2秒）
-            systemInfoInterval = setInterval(refreshSystemInfo, 2000);
-            console.log('实时监控已启动，每2秒刷新一次');
-        }
-        
-        // 停止实时监控
-        function stopRealTimeMonitoring() {
-            if (systemInfoInterval) {
-                clearInterval(systemInfoInterval);
-                systemInfoInterval = null;
-                console.log('实时监控已停止');
-            }
-        }
-        
-        // 显示消息函数
-        function showMessage(message) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.style.background = 'rgba(76, 175, 80, 0.3)';
-            
-            setTimeout(() => {
-                status.textContent = '应用已准备就绪';
-                status.style.background = 'rgba(255, 255, 255, 0.2)';
-            }, 2000);
-        }
-        
-        // 窗口控制函数
-        async function closeWindow() {
-            try {
-                if (detectTauriEnvironment()) {
-                    // Tauri v2 语法
-                    await window.__TAURI__.window.getCurrent().close();
-                } else {
-                    // 浏览器环境模拟
-                    if (confirm('确定要关闭窗口吗？')) {
-                        window.close();
-                    }
-                }
-            } catch (error) {
-                console.error('关闭窗口失败:', error);
-                showMessage('关闭窗口失败: ' + error.message);
-            }
-        }
-        
-        async function minimizeWindow() {
-            try {
-                if (detectTauriEnvironment()) {
-                    // Tauri v2 语法
-                    await window.__TAURI__.window.getCurrent().minimize();
-                    showMessage('窗口已最小化');
-                } else {
-                    // 浏览器环境模拟
-                    showMessage('最小化功能在浏览器中不可用');
-                }
-            } catch (error) {
-                console.error('最小化窗口失败:', error);
-                showMessage('最小化窗口失败: ' + error.message);
-            }
-        }
-        
-        async function toggleMaximizeWindow() {
-            try {
-                if (detectTauriEnvironment()) {
-                    // Tauri v2 语法
-                    const currentWindow = window.__TAURI__.window.getCurrent();
-                    if (isMaximized) {
-                        await currentWindow.unmaximize();
-                        isMaximized = false;
-                        showMessage('窗口已还原');
-                    } else {
-                        await currentWindow.maximize();
-                        isMaximized = true;
-                        showMessage('窗口已最大化');
-                    }
-                } else {
-                    // 浏览器环境模拟
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen();
-                        isMaximized = false;
-                        showMessage('已退出全屏模式');
-                    } else {
-                        document.documentElement.requestFullscreen();
-                        isMaximized = true;
-                        showMessage('已进入全屏模式');
-                    }
-                }
-            } catch (error) {
-                console.error('切换最大化状态失败:', error);
-                showMessage('切换最大化状态失败: ' + error.message);
-            }
-        }
-        
-        async function resizeToHalf() {
-            try {
-                if (detectTauriEnvironment()) {
-                    // Tauri v2 语法
-                    const currentWindow = window.__TAURI__.window.getCurrent();
-                    
-                    // 获取当前窗口大小
-                    const currentSize = await currentWindow.innerSize();
-                    const halfWidth = Math.max(400, Math.round(currentSize.width * 0.5));
-                    const halfHeight = Math.max(300, Math.round(currentSize.height * 0.5));
-                    
-                    // 设置新大小
-                    await currentWindow.setSize({
-                        type: 'Logical',
-                        data: { width: halfWidth, height: halfHeight }
-                    });
-                    showMessage(`窗口已调整为: ${halfWidth} × ${halfHeight}`);
-                } else {
-                    // 在浏览器中模拟
-                    const newWidth = Math.max(400, Math.round(window.outerWidth * 0.5));
-                    const newHeight = Math.max(300, Math.round(window.outerHeight * 0.5));
-                    
-                    window.resizeTo(newWidth, newHeight);
-                    showMessage(`窗口大小已调整为: ${newWidth} × ${newHeight}`);
-                }
-            } catch (error) {
-                console.error('调整窗口大小失败:', error);
-                showMessage('调整窗口大小失败: ' + error.message);
-            }
-        }
-        
-        // 恢复原始大小
-        async function restoreOriginalSize() {
-            try {
-                if (detectTauriEnvironment()) {
-                    // Tauri v2 语法
-                    const currentWindow = window.__TAURI__.window.getCurrent();
-                    
-                    await currentWindow.setSize({
-                        type: 'Logical',
-                        data: { width: originalSize.width, height: originalSize.height }
-                    });
-                    showMessage(`窗口已恢复为: ${originalSize.width} × ${originalSize.height}`);
-                } else {
-                    // 浏览器环境模拟
-                    window.resizeTo(originalSize.width, originalSize.height);
-                    showMessage(`窗口已恢复为: ${originalSize.width} × ${originalSize.height}`);
-                }
-            } catch (error) {
-                console.error('恢复窗口大小失败:', error);
-                showMessage('恢复窗口大小失败: ' + error.message);
-            }
-        }
-        
-function getFallbackSystemInfo() {
-    return {
-        cpu_usage: Math.random() * 100,
-        cpu_name: 'Intel(R) Core(TM) i7-12700K',
-        cpu_cores: 12,
-        memory_total: 17179869184, // 16GB
-        memory_used: Math.random() * 8589934592, // 0-8GB
-        memory_usage: Math.random() * 100,
-        gpu_name: 'NVIDIA GeForce RTX 3080',
-        gpu_usage: Math.random() * 100,
-        os_name: 'Windows 11',
-        os_version: '22H2'
-    };
-}
-
-
-        // 拖拽控制函数
-        function enableDrag() {
-            isDraggingEnabled = true;
-            const dragHandle = document.getElementById('dragHandle');
-            const titlebar = document.querySelector('.custom-titlebar');
-            
-            if (dragHandle) dragHandle.style.display = 'flex';
-            if (titlebar) titlebar.style.webkitAppRegion = 'drag';
-            
-            showMessage('拖拽功能已启用');
-        }
-        
-        function disableDrag() {
-            isDraggingEnabled = false;
-            const dragHandle = document.getElementById('dragHandle');
-            const titlebar = document.querySelector('.custom-titlebar');
-            
-            if (dragHandle) dragHandle.style.display = 'none';
-            if (titlebar) titlebar.style.webkitAppRegion = 'no-drag';
-            
-            showMessage('拖拽功能已禁用');
-        }
-        
-        // 窗口控制面板
-        function toggleControlsPanel() {
-            const panel = document.getElementById('controlsPanel');
-            if (panel.style.display === 'none') {
-                panel.style.display = 'block';
-                panel.classList.add('slide-in');
-                showMessage('窗口控制面板已打开');
-            } else {
-                panel.classList.remove('slide-in');
-                panel.style.display = 'none';
-                showMessage('窗口控制面板已关闭');
-            }
-        }
-        
-        // 跨平台样式适配
-        function adaptPlatformStyles() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            const body = document.body;
-            
-            // 移除现有的平台类
-            body.classList.remove('platform-windows', 'platform-macos', 'platform-linux');
-            
-            if (userAgent.includes('win')) {
-                // Windows样式
-                body.classList.add('platform-windows');
-                showMessage('Windows平台样式已应用');
-            } else if (userAgent.includes('mac')) {
-                // macOS样式
-                body.classList.add('platform-macos');
-                showMessage('macOS平台样式已应用');
-            } else {
-                // Linux和其他平台
-                body.classList.add('platform-linux');
-                showMessage('Linux平台样式已应用');
-            }
-        }
-        
-        // 显示消息
-        function showMessage(message) {
-            const statusElement = document.getElementById('status');
-            if (statusElement) {
-                statusElement.textContent = message;
-                console.log('状态消息:', message);
-            }
-        }
-        
-        // 刷新系统信息
-        async function refreshSystemInfo() {
-            try {
-                showMessage('正在刷新系统信息...');
-                const systemInfo = await getSystemInfo();
-                updateSystemInfoUI(systemInfo);
-                showMessage('系统信息刷新完成');
-            } catch (error) {
-                console.error('刷新系统信息失败:', error);
-                showMessage('刷新系统信息失败: ' + error.message);
-            }
-        }
-        
-        // 更新系统信息UI
-        function updateSystemInfoUI(systemInfo) {
-            // 更新硬件信息
-            document.getElementById('cpuModel').textContent = systemInfo.cpu_name || '未知';
-            document.getElementById('gpuModel').textContent = systemInfo.gpu_name || '未知';
-            document.getElementById('memoryModel').textContent = formatBytes(systemInfo.memory_total) || '未知';
-            document.getElementById('osInfo').textContent = `${systemInfo.os_name || '未知'} ${systemInfo.os_version || ''}`;
-            
-            // 更新性能监控
-            document.getElementById('cpuUsage').textContent = `${Math.round(systemInfo.cpu_usage || 0)}%`;
-            document.getElementById('cpuProgress').style.width = `${systemInfo.cpu_usage || 0}%`;
-            
-            document.getElementById('gpuUsage').textContent = `${Math.round(systemInfo.gpu_usage || 0)}%`;
-            document.getElementById('gpuProgress').style.width = `${systemInfo.gpu_usage || 0}%`;
-            
-            document.getElementById('memoryUsage').textContent = `${Math.round(systemInfo.memory_usage || 0)}%`;
-            document.getElementById('memoryProgress').style.width = `${systemInfo.memory_usage || 0}%`;
-            
-            // 更新内存使用情况
-            const memoryUsed = systemInfo.memory_used || 0;
-            const memoryTotal = systemInfo.memory_total || 0;
-            document.getElementById('memoryUsed').textContent = formatBytes(memoryUsed);
-            document.getElementById('memoryTotal').textContent = `总内存: ${formatBytes(memoryTotal)}`;
-        }
-        
-        // 格式化字节大小
-        function formatBytes(bytes) {
-            if (!bytes || bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        // 启动实时监控
-        function startRealTimeMonitoring() {
-            // 停止现有的定时器
-            if (systemInfoInterval) {
-                clearInterval(systemInfoInterval);
-            }
-            
-            // 启动新的定时器，每5秒刷新一次
-            systemInfoInterval = setInterval(async () => {
-                try {
-                    const systemInfo = await getSystemInfo();
-                    updateSystemInfoUI(systemInfo);
-                } catch (error) {
-                    console.error('实时监控更新失败:', error);
-                }
-            }, 5000);
-            
-            console.log('实时监控已启动');
-        }
-        
-        // 停止实时监控
-        function stopRealTimeMonitoring() {
-            if (systemInfoInterval) {
-                clearInterval(systemInfoInterval);
-                systemInfoInterval = null;
-                console.log('实时监控已停止');
-            }
-        }
-        
-        // 更新窗口状态
-        function updateWindowState() {
-            // 在Tauri环境中更新窗口状态
-            if (isTauriEnvironment) {
-                // 这里可以添加Tauri特定的窗口状态更新逻辑
-                console.log('窗口状态已更新');
-            }
-        }
-        
-        // 初始化窗口控制
-        function initializeWindowControls() {
-            detectTauriEnvironment();
-            adaptPlatformStyles();
-            enableDrag();
-            
-            // 启动实时监控
-            startRealTimeMonitoring();
-            
-            // 添加键盘快捷键
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 'r') {
-                    e.preventDefault();
-                    refreshSystemInfo();
-                } else if (e.key === 'Escape') {
-                    // ESC键关闭控制面板
-                    const panel = document.getElementById('controlsPanel');
-                    if (panel.style.display === 'block') {
-                        toggleControlsPanel();
-                    }
-                }
-            });
-            
-            // 添加窗口大小变化监听
-            window.addEventListener('resize', () => {
-                if (isTauriEnvironment) {
-                    // 在Tauri环境中，窗口大小变化时更新状态
-                    updateWindowState();
-                }
-            });
-            
-            // 显示初始化完成消息
-            const environmentInfo = isTauriEnvironment ? 'Tauri桌面应用' : 'Web浏览器';
-            console.log(`窗口控制功能初始化完成 - 环境: ${environmentInfo}`);
-            showMessage(`万遥客户端已启动 - 系统监控功能已激活 - ${environmentInfo}`);
-        }
-        
-        // 页面加载完成后初始化
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log('万遥客户端界面已加载完成');
-            
-            // 延迟初始化，确保所有元素都已加载
-            setTimeout(() => {
-                showMessage('系统初始化完成');
-                initializeWindowControls();
-            }, 500);
-        });
-        
-        // 页面卸载时清理定时器
+        window.addEventListener('DOMContentLoaded', initApp);
         window.addEventListener('beforeunload', () => {
-            stopRealTimeMonitoring();
+            stopMonitoring();
         });
-
-
     </script>
 </body>
 </html>

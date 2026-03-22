@@ -7,6 +7,7 @@ const port = 3000;
 const mimeTypes = {
   '.html': 'text/html',
   '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
   '.css': 'text/css',
   '.json': 'application/json',
   '.png': 'image/png',
@@ -18,8 +19,33 @@ const mimeTypes = {
 const server = http.createServer((req, res) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   
+  // 处理 @tauri-apps/api 模块请求
+  if (req.url.startsWith('/@tauri-apps/')) {
+    // 移除开头的斜杠
+    const relativePath = req.url.substring(1);
+    const modulePath = path.join(__dirname, 'node_modules', relativePath);
+    
+    fs.readFile(modulePath, (error, content) => {
+      if (error) {
+        console.error('模块未找到:', modulePath);
+        res.writeHead(404);
+        res.end('模块未找到: ' + req.url);
+      } else {
+        res.writeHead(200, { 'Content-Type': 'text/javascript' });
+        res.end(content, 'utf-8');
+      }
+    });
+    return;
+  }
+  
   // 处理根路径
   let filePath = req.url === '/' ? '/index.html' : req.url;
+  
+  // 处理查询参数
+  if (filePath.includes('?')) {
+    filePath = filePath.split('?')[0];
+  }
+  
   filePath = path.join(__dirname, filePath);
   
   const extname = path.extname(filePath);

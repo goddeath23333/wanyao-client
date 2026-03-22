@@ -10,6 +10,7 @@
     "beforeBuildCommand": ""
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "万遥客户端",
@@ -23,8 +24,9 @@
         "minimizable": true,
         "maximizable": true,
         "closable": true,
-        "decorations": true,
-        "transparent": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
         "center": true,
         "skipTaskbar": false
       }
@@ -52,6 +54,10 @@
     "category": "Utility",
     "shortDescription": "万遥客户端",
     "longDescription": "一个现代化的客户端应用程序，提供系统监控和远程连接功能",
+    "resources": [
+      "../python-scripts/**/*",
+      "../python-embed/**/*"
+    ],
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
@@ -68,13 +74,5 @@
       "signingIdentity": null
     }
   },
-  "plugins": {
-    "log": {
-      "level": "info",
-      "rotation": {
-        "maxAge": 7,
-        "maxSize": "10MB"
-      }
-    }
-  }
+  "plugins": {}
 }

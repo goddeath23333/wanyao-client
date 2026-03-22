@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tauri通讯功能测试</title>
+    <script type="importmap">
+    {
+        "imports": {
+            "@tauri-apps/api/core": "/@tauri-apps/api/core.js",
+            "@tauri-apps/api/window": "/@tauri-apps/api/window.js",
+            "@tauri-apps/api/dpi": "/@tauri-apps/api/dpi.js",
+            "@tauri-apps/api/event": "/@tauri-apps/api/event.js",
+            "@tauri-apps/api/image": "/@tauri-apps/api/image.js",
+            "./external/tslib/tslib.es6.js": "/@tauri-apps/api/external/tslib/tslib.es6.js",
+            "./dpi.js": "/@tauri-apps/api/dpi.js",
+            "./event.js": "/@tauri-apps/api/event.js",
+            "./core.js": "/@tauri-apps/api/core.js",
+            "./image.js": "/@tauri-apps/api/image.js"
+        }
+    }
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -80,7 +96,10 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Tauri v2 官方推荐 ES 模块导入方式
+        import { invoke } from '@tauri-apps/api/core';
+        
         let logElement = document.getElementById('testLog');
         
         function log(message, type = 'info') {
@@ -103,48 +122,43 @@
             log('日志已清空');
         }
         
-        function detectTauriEnvironment() {
-            return typeof window.__TAURI__ !== 'undefined';
+        let isTauriEnvironment = false;
+        
+        async function detectTauriEnvironment() {
+            try {
+                const { getCurrentWindow } = await import('@tauri-apps/api/window');
+                getCurrentWindow();
+                isTauriEnvironment = true;
+                return true;
+            } catch (error) {
+                isTauriEnvironment = false;
+                return false;
+            }
         }
         
-        function testEnvironment() {
+        async function testEnvironment() {
             const envSection = document.getElementById('environmentTest');
             const statusElement = document.getElementById('environmentStatus');
             
-            const isTauri = detectTauriEnvironment();
+            const isTauri = await detectTauriEnvironment();
             
             if (isTauri) {
                 envSection.className = 'test-section success';
                 statusElement.innerHTML = '✅ Tauri环境检测成功！';
                 log('Tauri环境检测: 是', 'success');
-                log('window.__TAURI__对象存在', 'success');
-                
-                // 检查具体的API
-                if (window.__TAURI__.invoke) {
-                    log('window.__TAURI__.invoke API存在', 'success');
-                } else {
-                    log('window.__TAURI__.invoke API不存在', 'error');
-                }
-                
-                if (window.__TAURI__.window) {
-                    log('window.__TAURI__.window API存在', 'success');
-                } else {
-                    log('window.__TAURI__.window API不存在', 'error');
-                }
-                
+                log('使用 ES 模块导入方式', 'success');
             } else {
                 envSection.className = 'test-section error';
                 statusElement.innerHTML = '❌ 未检测到Tauri环境（在浏览器中运行）';
                 log('Tauri环境检测: 否', 'error');
-                log('window.__TAURI__对象不存在', 'error');
             }
         }
         
-        function testTauriApi() {
+        async function testTauriApi() {
             const apiSection = document.getElementById('tauriApiTest');
             const statusElement = document.getElementById('tauriApiStatus');
             
-            if (!detectTauriEnvironment()) {
+            if (!isTauriEnvironment) {
                 statusElement.innerHTML = '❌ 无法测试API（不在Tauri环境中）';
                 log('无法测试Tauri API：不在Tauri环境中', 'error');
                 return;
@@ -152,29 +166,19 @@
             
             log('开始测试Tauri API...');
             
-            // 测试invoke API
+            // 测试 invoke API
             try {
-                if (window.__TAURI__.invoke) {
-                    log('✅ window.__TAURI__.invoke API测试通过', 'success');
-                } else {
-                    log('❌ window.__TAURI__.invoke API测试失败', 'error');
-                }
+                log('✅ invoke API (ES模块导入) 可用', 'success');
             } catch (error) {
                 log(`❌ invoke API测试失败: ${error.message}`, 'error');
             }
             
-            // 测试window API
+            // 测试 window API
             try {
-                if (window.__TAURI__.window) {
-                    log('✅ window.__TAURI__.window API测试通过', 'success');
-                    
-                    // 测试获取当前窗口
-                    const currentWindow = window.__TAURI__.window.getCurrent();
-                    if (currentWindow) {
-                        log('✅ 获取当前窗口成功', 'success');
-                    }
-                } else {
-                    log('❌ window.__TAURI__.window API测试失败', 'error');
+                const { getCurrentWindow } = await import('@tauri-apps/api/window');
+                const currentWindow = getCurrentWindow();
+                if (currentWindow) {
+                    log('✅ getCurrentWindow API测试通过', 'success');
                 }
             } catch (error) {
                 log(`❌ window API测试失败: ${error.message}`, 'error');
@@ -188,7 +192,7 @@
             const commSection = document.getElementById('rustCommunicationTest');
             const statusElement = document.getElementById('rustCommunicationStatus');
             
-            if (!detectTauriEnvironment()) {
+            if (!isTauriEnvironment) {
                 statusElement.innerHTML = '❌ 无法测试通讯（不在Tauri环境中）';
                 log('无法测试Rust通讯：不在Tauri环境中', 'error');
                 return;
@@ -197,8 +201,8 @@
             log('开始测试Rust后端通讯...');
             
             try {
-                // 测试调用Rust后端函数
-                const result = await window.__TAURI__.invoke('get_system_info');
+                // 使用 ES 模块导入的 invoke
+                const result = await invoke('get_system_info');
                 
                 log('✅ Rust后端通讯测试成功！', 'success');
                 log(`收到系统信息: CPU=${result.cpu_name}, 内存=${result.memory_total}字节`, 'success');
@@ -215,7 +219,7 @@
         }
         
         async function getSystemInfo() {
-            if (!detectTauriEnvironment()) {
+            if (!isTauriEnvironment) {
                 log('❌ 无法获取系统信息（不在Tauri环境中）', 'error');
                 return;
             }
@@ -224,7 +228,8 @@
             
             try {
                 const startTime = Date.now();
-                const systemInfo = await window.__TAURI__.invoke('get_system_info');
+                // 使用 ES 模块导入的 invoke
+                const systemInfo = await invoke('get_system_info');
                 const endTime = Date.now();
                 
                 log(`✅ 获取系统信息成功（耗时: ${endTime - startTime}ms）`, 'success');
