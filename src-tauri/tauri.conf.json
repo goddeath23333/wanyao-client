@@ -1,19 +1,19 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "WanyaoClient",
-  "version": "1.1.0",
+  "version": "1.1.0.1",
   "identifier": "com.wanyao.client",
   "build": {
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "node scripts/copy-assets.js"
+    "frontendDist": "../src",
+    "devUrl": "http://localhost:3001",
+    "beforeDevCommand": "node server.js"
   },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
         "title": "万遥客户端",
+        "url": "index.html",
         "label": "main",
         "width": 1000,
         "height": 750,
@@ -24,15 +24,15 @@
         "minimizable": true,
         "maximizable": true,
         "closable": true,
-        "decorations": false,
-        "transparent": true,
+        "decorations": true,
+        "transparent": false,
         "shadow": true,
         "center": true,
         "skipTaskbar": false
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: http: data:;"
+      "csp": null
     }
   },
   "bundle": {
