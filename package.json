@@ -5,11 +5,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "node server.js",
+    "server": "node server.js",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:debug": "tauri build --debug",
+    "ci:build": "tauri build",
     "start": "tauri dev",
     "build": "tauri build",
     "build:debug": "tauri build --debug",
-    "tauri": "tauri",
-    "server": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -30,9 +34,9 @@
   },
   "homepage": "https://github.com/goddeath23333/wanyao-client#readme",
   "dependencies": {
-    "@tauri-apps/api": "^2.9.0"
+    "@tauri-apps/api": "^2.10.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.9.1"
+    "@tauri-apps/cli": "^2.10.0"
   }
 }

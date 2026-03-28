@@ -6,4 +6,3 @@ registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
 
 [net]
 git-fetch-with-cli = true
-ssl-revoc-check = "disable"
