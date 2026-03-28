@@ -6,14 +6,15 @@
   "scripts": {
     "dev": "node server.js",
     "server": "node server.js",
+    "build:assets": "node scripts/copy-assets.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
-    "tauri:build:debug": "tauri build --debug",
-    "ci:build": "tauri build",
+    "tauri:build": "npm run build:assets && tauri build",
+    "tauri:build:debug": "npm run build:assets && tauri build --debug",
+    "ci:build": "npm run build:assets && tauri build",
     "start": "tauri dev",
-    "build": "tauri build",
-    "build:debug": "tauri build --debug",
+    "build": "npm run build:assets && tauri build",
+    "build:debug": "npm run build:assets && tauri build --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

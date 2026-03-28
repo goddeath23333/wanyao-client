@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "identifier": "com.wanyao.client",
   "build": {
-    "frontendDist": "..",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": ""
+    "beforeBuildCommand": "node scripts/copy-assets.js"
   },
   "app": {
     "withGlobalTauri": true,
