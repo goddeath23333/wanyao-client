@@ -38,9 +38,30 @@ async function getSystemInfo() {
     
     try {
         if (getIsTauriEnvironment()) {
-            const systemInfo = await invoke('get_system_info');
-            if (systemInfo && systemInfo.memory && systemInfo.memory.total > 0) {
-                systemInfo.is_simulated = false;
+            const rawInfo = await invoke('get_system_info');
+            if (rawInfo && rawInfo.memory_total > 0) {
+                const systemInfo = {
+                    cpu: {
+                        name: rawInfo.cpu_name || 'Unknown CPU',
+                        usage: rawInfo.cpu_usage || 0,
+                        cores: rawInfo.cpu_cores || 0
+                    },
+                    memory: {
+                        total: rawInfo.memory_total || 0,
+                        used: rawInfo.memory_used || 0,
+                        usage: rawInfo.memory_usage || 0
+                    },
+                    gpus: [{ 
+                        name: rawInfo.gpu_name || 'Unknown GPU', 
+                        usage: rawInfo.gpu_usage || 0, 
+                        vendor: 'Unknown' 
+                    }],
+                    os: {
+                        name: rawInfo.os_name || 'Unknown',
+                        version: rawInfo.os_version || ''
+                    },
+                    is_simulated: false
+                };
                 return systemInfo;
             }
         }
