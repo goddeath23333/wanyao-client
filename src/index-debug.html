@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 排查测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        #log {
+            background: #0a0a1e;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            min-height: 200px;
+            white-space: pre-wrap;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <h1>排查测试 - 加载了 CSS 和 Chart.js</h1>
+    
+    <div>
+        <button onclick="log('按钮1被点击!')">测试按钮 1</button>
+        <button onclick="alert('按钮2被点击!')">测试按钮 2 (Alert)</button>
+        <button id="btn3">测试按钮 3 (addEventListener)</button>
+    </div>
+    
+    <div id="log">日志输出:</div>
+
+    <script src="js/common.js"></script>
+    <script>
+        function log(msg) {
+            var logDiv = document.getElementById('log');
+            var time = new Date().toLocaleTimeString();
+            logDiv.textContent += '\n[' + time + '] ' + msg;
+            console.log(msg);
+        }
+        
+        document.getElementById('btn3').addEventListener('click', function() {
+            log('按钮3被点击 (addEventListener)!');
+        });
+        
+        log('页面加载完成');
+        log('window.__TAURI__ 存在: ' + !!window.__TAURI__);
+        
+        if (window.__TAURI__) {
+            log('__TAURI__ keys: ' + Object.keys(window.__TAURI__).join(', '));
+        }
+    </script>
+</body>
+</html>

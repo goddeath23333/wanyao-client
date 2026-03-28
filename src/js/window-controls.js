@@ -1,10 +1,9 @@
-import { getIsTauriEnvironment, getCurrentWindowInstance, invoke } from './common.js';
-
-let isMaximized = false;
+var isMaximized = false;
 
 async function closeWindow() {
     try {
-        if (getIsTauriEnvironment()) {
+        if (window.getIsTauriEnvironment()) {
+            var invoke = window.getInvoke();
             await invoke('close_app');
         } else {
             if (confirm('确定要关闭窗口吗？')) {
@@ -21,8 +20,8 @@ async function closeWindow() {
 
 async function minimizeWindow() {
     try {
-        const currentWindow = getCurrentWindowInstance();
-        if (getIsTauriEnvironment() && currentWindow) {
+        var currentWindow = window.getCurrentWindowInstance();
+        if (window.getIsTauriEnvironment() && currentWindow) {
             await currentWindow.minimize();
         } else {
             console.log('最小化功能仅在桌面应用中可用');
@@ -34,8 +33,8 @@ async function minimizeWindow() {
 
 async function toggleMaximizeWindow() {
     try {
-        const currentWindow = getCurrentWindowInstance();
-        if (getIsTauriEnvironment() && currentWindow) {
+        var currentWindow = window.getCurrentWindowInstance();
+        if (window.getIsTauriEnvironment() && currentWindow) {
             if (isMaximized) {
                 await currentWindow.unmaximize();
                 isMaximized = false;
@@ -57,8 +56,6 @@ async function toggleMaximizeWindow() {
     }
 }
 
-export {
-    closeWindow,
-    minimizeWindow,
-    toggleMaximizeWindow
-};
+window.closeWindow = closeWindow;
+window.minimizeWindow = minimizeWindow;
+window.toggleMaximizeWindow = toggleMaximizeWindow;

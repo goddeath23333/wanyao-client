@@ -1,12 +1,10 @@
-import { invoke, getIsTauriEnvironment, formatBytes } from './common.js';
-
-let systemInfoInterval = null;
-let isUpdating = false;
-let isResizing = false;
-let resizeTimeout = null;
-let usageChart = null;
-const MAX_DATA_POINTS = 60;
-const chartData = {
+var systemInfoInterval = null;
+var isUpdating = false;
+var isResizing = false;
+var resizeTimeout = null;
+var usageChart = null;
+var MAX_DATA_POINTS = 60;
+var chartData = {
     cpu: [],
     memory: [],
     gpu: []
@@ -37,10 +35,11 @@ async function getSystemInfo() {
     if (isResizing) return null;
     
     try {
-        if (getIsTauriEnvironment()) {
-            const rawInfo = await invoke('get_system_info');
+        if (window.getIsTauriEnvironment()) {
+            var invoke = window.getInvoke();
+            var rawInfo = await invoke('get_system_info');
             if (rawInfo && rawInfo.memory_total > 0) {
-                const systemInfo = {
+                var systemInfo = {
                     cpu: {
                         name: rawInfo.cpu_name || 'Unknown CPU',
                         usage: rawInfo.cpu_usage || 0,
@@ -73,12 +72,12 @@ async function getSystemInfo() {
 }
 
 function initChart() {
-    const ctx = document.getElementById('usageChart');
+    var ctx = document.getElementById('usageChart');
     if (!ctx) return;
     
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const textColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    var gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    var textColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
     
     usageChart = new Chart(ctx, {
         type: 'line',
@@ -144,7 +143,7 @@ function initChart() {
                     },
                     ticks: {
                         color: textColor,
-                        callback: value => value + '%'
+                        callback: function(value) { return value + '%'; }
                     }
                 }
             }
@@ -176,95 +175,91 @@ function updateDashboardStats(systemInfo) {
     
     isUpdating = true;
     
-    requestAnimationFrame(() => {
-        const cpu = systemInfo.cpu || {};
-        const memory = systemInfo.memory || {};
-        const gpus = systemInfo.gpus || [];
+    requestAnimationFrame(function() {
+        var cpu = systemInfo.cpu || {};
+        var memory = systemInfo.memory || {};
+        var gpus = systemInfo.gpus || [];
         
-        const hwCpuName = document.getElementById('hwCpuName');
-        const hwMemorySize = document.getElementById('hwMemorySize');
+        var hwCpuName = document.getElementById('hwCpuName');
+        var hwMemorySize = document.getElementById('hwMemorySize');
         
         if (hwCpuName && cpu.name) {
             hwCpuName.textContent = cpu.name;
         }
         if (hwMemorySize && memory.total) {
-            hwMemorySize.textContent = formatBytes(memory.total);
+            hwMemorySize.textContent = window.formatBytes(memory.total);
         }
         
-        const cpuValue = document.getElementById('statCpuValue');
-        const cpuBar = document.getElementById('statCpuBar');
-        const cpuCores = document.getElementById('statCpuCores');
+        var cpuValue = document.getElementById('statCpuValue');
+        var cpuBar = document.getElementById('statCpuBar');
+        var cpuCores = document.getElementById('statCpuCores');
         
         if (cpuValue && cpuBar) {
-            const cpuUsage = Math.round(cpu.usage || 0);
-            cpuValue.textContent = `${cpuUsage}`;
-            cpuBar.style.width = `${cpuUsage}%`;
+            var cpuUsage = Math.round(cpu.usage || 0);
+            cpuValue.textContent = cpuUsage.toString();
+            cpuBar.style.width = cpuUsage + '%';
         }
         if (cpuCores && cpu.cores) {
-            cpuCores.textContent = `${cpu.cores} 核心`;
+            cpuCores.textContent = cpu.cores + ' 核心';
         }
         
-        const memoryValue = document.getElementById('statMemoryValue');
-        const memoryBar = document.getElementById('statMemoryBar');
-        const memoryDetail = document.getElementById('statMemoryDetail');
+        var memoryValue = document.getElementById('statMemoryValue');
+        var memoryBar = document.getElementById('statMemoryBar');
+        var memoryDetail = document.getElementById('statMemoryDetail');
         
         if (memoryValue && memoryBar) {
-            const memUsage = Math.round(memory.usage || 0);
-            memoryValue.textContent = `${memUsage}`;
-            memoryBar.style.width = `${memUsage}%`;
+            var memUsage = Math.round(memory.usage || 0);
+            memoryValue.textContent = memUsage.toString();
+            memoryBar.style.width = memUsage + '%';
         }
         if (memoryDetail) {
-            const memUsed = formatBytes(memory.used || 0);
-            const memTotal = formatBytes(memory.total || 0);
-            memoryDetail.textContent = `${memUsed} / ${memTotal}`;
+            var memUsed = window.formatBytes(memory.used || 0);
+            var memTotal = window.formatBytes(memory.total || 0);
+            memoryDetail.textContent = memUsed + ' / ' + memTotal;
         }
         
-        const gpuContainer = document.getElementById('gpuContainer');
-        const gpuCard = document.getElementById('gpuCard');
+        var gpuContainer = document.getElementById('gpuContainer');
+        var gpuCard = document.getElementById('gpuCard');
         
         if (gpuContainer && gpuCard && gpus.length > 0) {
             if (gpus.length === 1) {
                 gpuCard.style.display = 'flex';
                 gpuContainer.style.display = 'none';
                 
-                const hwGpuName = document.getElementById('hwGpuName');
-                const statGpuValue = document.getElementById('statGpuValue');
-                const statGpuBar = document.getElementById('statGpuBar');
+                var hwGpuName = document.getElementById('hwGpuName');
+                var statGpuValue = document.getElementById('statGpuValue');
+                var statGpuBar = document.getElementById('statGpuBar');
                 
                 if (hwGpuName) hwGpuName.textContent = gpus[0].name;
-                if (statGpuValue) statGpuValue.textContent = Math.round(gpus[0].usage || 0);
-                if (statGpuBar) statGpuBar.style.width = `${gpus[0].usage || 0}%`;
+                if (statGpuValue) statGpuValue.textContent = Math.round(gpus[0].usage || 0).toString();
+                if (statGpuBar) statGpuBar.style.width = (gpus[0].usage || 0) + '%';
             } else if (gpus.length > 1) {
                 gpuCard.style.display = 'none';
                 gpuContainer.style.display = 'grid';
                 
-                let gpuHtml = '';
-                gpus.forEach((gpu, index) => {
-                    const vendorIcon = gpu.vendor === 'NVIDIA' ? '🟢' : gpu.vendor === 'AMD' ? '🔴' : '⚪';
-                    gpuHtml += `
-                        <div class="monitor-card">
-                            <div class="monitor-card__header">
-                                <div class="monitor-card__icon">🎮</div>
-                                <div class="monitor-card__info">
-                                    <div class="monitor-card__name">${gpu.name}</div>
-                                    <div class="monitor-card__detail">${vendorIcon} ${gpu.vendor} · GPU ${index + 1}</div>
-                                </div>
-                            </div>
-                            <div class="monitor-card__usage">
-                                <span class="monitor-card__value">${Math.round(gpu.usage || 0)}</span>
-                                <span class="monitor-card__unit">%</span>
-                            </div>
-                            <div class="monitor-card__bar">
-                                <div class="monitor-card__bar-fill gpu" style="width: ${gpu.usage || 0}%"></div>
-                            </div>
-                        </div>
-                    `;
+                var gpuHtml = '';
+                gpus.forEach(function(gpu, index) {
+                    var vendorIcon = gpu.vendor === 'NVIDIA' ? '🟢' : gpu.vendor === 'AMD' ? '🔴' : '⚪';
+                    gpuHtml += '<div class="monitor-card">' +
+                        '<div class="monitor-card__header">' +
+                        '<div class="monitor-card__icon">🎮</div>' +
+                        '<div class="monitor-card__info">' +
+                        '<div class="monitor-card__name">' + gpu.name + '</div>' +
+                        '<div class="monitor-card__detail">' + vendorIcon + ' ' + gpu.vendor + ' · GPU ' + (index + 1) + '</div>' +
+                        '</div></div>' +
+                        '<div class="monitor-card__usage">' +
+                        '<span class="monitor-card__value">' + Math.round(gpu.usage || 0) + '</span>' +
+                        '<span class="monitor-card__unit">%</span>' +
+                        '</div>' +
+                        '<div class="monitor-card__bar">' +
+                        '<div class="monitor-card__bar-fill gpu" style="width: ' + (gpu.usage || 0) + '%"></div>' +
+                        '</div></div>';
                 });
                 gpuContainer.innerHTML = gpuHtml;
             }
         }
         
-        const firstGpuUsage = gpus && gpus[0] ? (gpus[0].usage || 0) : 0;
+        var firstGpuUsage = gpus && gpus[0] ? (gpus[0].usage || 0) : 0;
         updateChart(
             Math.round(cpu.usage || 0),
             Math.round(memory.usage || 0),
@@ -277,7 +272,7 @@ function updateDashboardStats(systemInfo) {
 
 async function refreshStats() {
     if (isResizing) return;
-    const info = await getSystemInfo();
+    var info = await getSystemInfo();
     if (info) {
         updateDashboardStats(info);
     }
@@ -294,7 +289,7 @@ function handleResizeEnd() {
     if (resizeTimeout) {
         clearTimeout(resizeTimeout);
     }
-    resizeTimeout = setTimeout(() => {
+    resizeTimeout = setTimeout(function() {
         isResizing = false;
         refreshStats();
     }, 200);
@@ -328,11 +323,9 @@ function stopMonitoring() {
     }
 }
 
-export {
-    getSystemInfo,
-    updateDashboardStats,
-    startMonitoring,
-    stopMonitoring,
-    initChart,
-    updateChart
-};
+window.getSystemInfo = getSystemInfo;
+window.updateDashboardStats = updateDashboardStats;
+window.startMonitoring = startMonitoring;
+window.stopMonitoring = stopMonitoring;
+window.initChart = initChart;
+window.updateChart = updateChart;

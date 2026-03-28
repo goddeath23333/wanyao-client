@@ -4,18 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>万遥客户端</title>
-    <script type="importmap">
-    {
-        "imports": {
-            "@tauri-apps/api/core": "/@tauri-apps/api/core.js",
-            "@tauri-apps/api/window": "/@tauri-apps/api/window.js",
-            "@tauri-apps/api/dpi": "/@tauri-apps/api/dpi.js",
-            "@tauri-apps/api/event": "/@tauri-apps/api/event.js",
-            "@tauri-apps/api/image": "/@tauri-apps/api/image.js",
-            "./external/tslib/tslib.es6.js": "/@tauri-apps/api/external/tslib/tslib.es6.js"
-        }
-    }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/common.css">
     <style>
@@ -837,48 +825,95 @@
             </main>
         </div>
     </div>
+    
+    <div id="debugPanel" style="position: fixed; bottom: 0; left: 0; right: 0; height: 150px; background: #1a1a2e; border-top: 2px solid #4a4a6a; z-index: 9999; display: flex; flex-direction: column; pointer-events: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; background: #16162a; border-bottom: 1px solid #3a3a5a; pointer-events: auto;">
+            <span style="color: #888; font-size: 12px; font-family: monospace;">📋 调试日志</span>
+            <div>
+                <button onclick="clearDebugLog()" style="background: #3a3a5a; border: none; color: #aaa; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-size: 11px;">清空</button>
+                <button onclick="toggleDebugPanel()" style="background: #3a3a5a; border: none; color: #aaa; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-size: 11px; margin-left: 4px;">隐藏</button>
+            </div>
+        </div>
+        <div id="debugLog" style="flex: 1; overflow-y: auto; padding: 8px 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; pointer-events: auto;"></div>
+    </div>
 
-    <script type="module">
-        import { detectTauriEnvironment, initTheme, setTheme, toggleTheme, navigateTo, toggleSidebar } from './js/common.js';
-        import { startMonitoring, stopMonitoring, initChart } from './js/system-monitor.js';
-        import { closeWindow, minimizeWindow, toggleMaximizeWindow } from './js/window-controls.js';
-        import { checkPythonVersion, runPythonTest } from './js/python-module.js';
-        import { 
-            refreshSerialPorts, 
-            toggleSerialConnection, 
-            sendSerialData, 
-            clearReceiveArea, 
-            quickSend,
-            initSerialAssistant 
-        } from './js/serial.js';
+    <script>
+        // 调试系统 - 必须在 module 之前初始化
+        window.debugLog = function(message, type) {
+            type = type || 'log';
+            var logDiv = document.getElementById('debugLog');
+            if (!logDiv) {
+                console.log('[调试面板未找到]', message);
+                return;
+            }
+            
+            var time = new Date().toLocaleTimeString();
+            var colors = {
+                log: '#aaa',
+                info: '#6af',
+                warn: '#fa0',
+                error: '#f55',
+                success: '#5f5'
+            };
+            
+            var line = document.createElement('div');
+            line.style.color = colors[type] || colors.log;
+            line.innerHTML = '<span style="color:#666">[' + time + ']</span> ' + message;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
         
-        window.closeWindow = closeWindow;
-        window.minimizeWindow = minimizeWindow;
-        window.toggleMaximizeWindow = toggleMaximizeWindow;
-        window.navigateTo = navigateTo;
-        window.toggleSidebar = toggleSidebar;
-        window.setTheme = setTheme;
-        window.toggleTheme = toggleTheme;
-        window.checkPythonVersion = checkPythonVersion;
-        window.runPythonTest = runPythonTest;
-        window.refreshSerialPorts = refreshSerialPorts;
-        window.toggleSerialConnection = toggleSerialConnection;
-        window.sendSerialData = sendSerialData;
-        window.clearReceiveArea = clearReceiveArea;
-        window.quickSend = quickSend;
+        window.clearDebugLog = function() {
+            document.getElementById('debugLog').innerHTML = '';
+        };
         
+        window.toggleDebugPanel = function() {
+            var panel = document.getElementById('debugPanel');
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        };
+        
+        // 捕获全局错误
+        window.onerror = function(msg, url, line, col, error) {
+            window.debugLog('JS错误: ' + msg + ' (行:' + line + ')', 'error');
+            return false;
+        };
+        
+        window.addEventListener('unhandledrejection', function(event) {
+            window.debugLog('Promise错误: ' + (event.reason ? event.reason.message || event.reason : '未知'), 'error');
+        });
+        
+        // 页面加载时立即输出
+        window.addEventListener('DOMContentLoaded', function() {
+            window.debugLog('页面 DOMContentLoaded', 'info');
+            window.debugLog('window.__TAURI__ 存在: ' + !!window.__TAURI__, 'info');
+            if (window.__TAURI__) {
+                window.debugLog('__TAURI__ keys: ' + Object.keys(window.__TAURI__).join(', '), 'info');
+            }
+        });
+        
+        window.debugLog('调试系统已初始化', 'success');
+    </script>
+
+    <script src="js/common.js"></script>
+    <script src="js/window-controls.js"></script>
+    <script src="js/system-monitor.js"></script>
+    <script src="js/python-module.js"></script>
+    <script src="js/serial.js"></script>
+    <script>
         async function initApp() {
-            await detectTauriEnvironment();
-            initTheme();
-            initChart();
-            startMonitoring();
-            initSerialAssistant();
-            console.log('万遥客户端已启动');
+            await window.detectTauriEnvironment();
+            window.initTheme();
+            window.initChart();
+            window.startMonitoring();
+            window.initSerialAssistant();
+            window.debugLog('万遥客户端已启动', 'info');
+            window.debugLog('Tauri 环境: ' + (window.__TAURI__ ? '是 (全局API)' : '否'), 'info');
+            window.debugLog('window.__TAURI__ 内容: ' + JSON.stringify(Object.keys(window.__TAURI__ || {})), 'info');
         }
         
         window.addEventListener('DOMContentLoaded', initApp);
-        window.addEventListener('beforeunload', () => {
-            stopMonitoring();
+        window.addEventListener('beforeunload', function() {
+            window.stopMonitoring();
         });
     </script>
 </body>

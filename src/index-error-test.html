@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 错误捕获测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        #log { background: #0a0a1e; padding: 10px; font-family: monospace; min-height: 200px; white-space: pre-wrap; position: fixed; bottom: 0; left: 0; right: 0; height: 150px; overflow-y: auto; z-index: 9999; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="titlebar">
+            <div class="titlebar__title">
+                <img src="css/logo.png" class="titlebar__logo" alt="万遥">
+                <span>万遥客户端 - 错误捕获测试</span>
+            </div>
+            <div class="titlebar__controls">
+                <button class="titlebar__btn" onclick="minimizeWindow()" title="最小化">─</button>
+                <button class="titlebar__btn" onclick="toggleMaximizeWindow()" title="最大化">□</button>
+                <button class="titlebar__btn titlebar__btn--close" onclick="closeWindow()" title="关闭">✕</button>
+            </div>
+        </div>
+        
+        <div class="main-wrapper">
+            <aside class="sidebar">
+                <div class="sidebar__header">
+                    <div class="sidebar__logo">
+                        <img src="css/logo.png" class="sidebar__logo-icon" alt="万遥">
+                        <span class="sidebar__logo-text">万遥</span>
+                    </div>
+                </div>
+                
+                <nav class="sidebar__nav">
+                    <div class="nav-section">
+                        <div class="nav-section__title">主要功能</div>
+                        <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                            <span class="nav-item__icon">📊</span>
+                            <span class="nav-item__text">仪表盘</span>
+                        </div>
+                        <div class="nav-item" data-page="serial" onclick="navigateTo('serial')">
+                            <span class="nav-item__icon">🔌</span>
+                            <span class="nav-item__text">串口助手</span>
+                        </div>
+                        <div class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+                            <span class="nav-item__icon">⚙️</span>
+                            <span class="nav-item__text">设置</span>
+                        </div>
+                    </div>
+                </nav>
+                
+                <div class="sidebar__footer">
+                    <div class="nav-item" onclick="toggleSidebar()">
+                        <span class="nav-item__icon">◀</span>
+                        <span class="nav-item__text">收起侧边栏</span>
+                    </div>
+                </div>
+            </aside>
+            
+            <main class="content">
+                <div class="content__header">
+                    <h1 class="content__title">仪表盘</h1>
+                    <div class="content__actions">
+                        <button class="btn btn--ghost" onclick="toggleTheme()">🌓 切换主题</button>
+                    </div>
+                </div>
+                
+                <div class="content__body">
+                    <div id="page-dashboard" class="page active">
+                        <div style="padding: 20px;">
+                            <h2>仪表盘页面</h2>
+                            <p>这是仪表盘内容</p>
+                            <button onclick="log('按钮测试')">测试按钮</button>
+                        </div>
+                    </div>
+                    <div id="page-serial" class="page">
+                        <div style="padding: 20px;">
+                            <h2>串口助手页面</h2>
+                            <p>这是串口助手内容</p>
+                        </div>
+                    </div>
+                    <div id="page-settings" class="page">
+                        <div style="padding: 20px;">
+                            <h2>设置页面</h2>
+                            <p>这是设置内容</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="log">日志输出:</div>
+
+    <script>
+        function log(msg) {
+            var logDiv = document.getElementById('log');
+            var time = new Date().toLocaleTimeString();
+            logDiv.textContent += '\n[' + time + '] ' + msg;
+            console.log(msg);
+        }
+        
+        window.onerror = function(msg, url, line, col, error) {
+            log('JS错误: ' + msg + ' (行:' + line + ')');
+            return false;
+        };
+        
+        window.addEventListener('unhandledrejection', function(event) {
+            log('Promise错误: ' + (event.reason ? event.reason.message || event.reason : '未知'));
+        });
+        
+        log('脚本开始执行');
+    </script>
+
+    <script src="js/common.js"></script>
+    <script src="js/window-controls.js"></script>
+    <script src="js/system-monitor.js"></script>
+    <script src="js/python-module.js"></script>
+    <script src="js/serial.js"></script>
+    
+    <script>
+        log('所有 JS 加载完成');
+        log('navigateTo: ' + typeof window.navigateTo);
+        log('toggleSidebar: ' + typeof window.toggleSidebar);
+        log('toggleTheme: ' + typeof window.toggleTheme);
+        log('minimizeWindow: ' + typeof window.minimizeWindow);
+        
+        async function initApp() {
+            log('initApp 开始');
+            try {
+                await window.detectTauriEnvironment();
+                log('detectTauriEnvironment 完成');
+                window.initTheme();
+                log('initTheme 完成');
+                window.initChart();
+                log('initChart 完成');
+                window.startMonitoring();
+                log('startMonitoring 完成');
+                window.initSerialAssistant();
+                log('initSerialAssistant 完成');
+            } catch (e) {
+                log('initApp 错误: ' + e.message);
+            }
+            log('initApp 完成');
+        }
+        
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

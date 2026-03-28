@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 测试 app-region</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .test-drag {
+            background: #333;
+            padding: 20px;
+            margin: 20px;
+            -webkit-app-region: drag;
+        }
+        .test-no-drag {
+            background: #555;
+            padding: 20px;
+            margin: 20px;
+            -webkit-app-region: no-drag;
+        }
+        #log {
+            background: #0a0a1e;
+            padding: 10px;
+            font-family: monospace;
+            min-height: 200px;
+            white-space: pre-wrap;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="padding: 20px;">测试 -webkit-app-region</h1>
+    
+    <div class="test-drag">
+        <p>这个区域有 -webkit-app-region: drag</p>
+        <button onclick="log('drag 区域内的按钮被点击!')">drag 区域内的按钮</button>
+    </div>
+    
+    <div class="test-no-drag">
+        <p>这个区域有 -webkit-app-region: no-drag</p>
+        <button onclick="log('no-drag 区域内的按钮被点击!')">no-drag 区域内的按钮</button>
+    </div>
+    
+    <div style="padding: 20px;">
+        <p>这个区域没有 app-region 属性</p>
+        <button onclick="log('普通区域的按钮被点击!')">普通区域的按钮</button>
+    </div>
+    
+    <div id="log">日志输出:</div>
+
+    <script>
+        function log(msg) {
+            var logDiv = document.getElementById('log');
+            var time = new Date().toLocaleTimeString();
+            logDiv.textContent += '\n[' + time + '] ' + msg;
+            console.log(msg);
+        }
+        
+        log('页面加载完成');
+        log('window.__TAURI__ 存在: ' + !!window.__TAURI__);
+    </script>
+</body>
+</html>

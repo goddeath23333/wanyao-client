@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const port = 3000;
+const port = 3001;
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -46,7 +46,7 @@ const server = http.createServer((req, res) => {
     filePath = filePath.split('?')[0];
   }
   
-  filePath = path.join(__dirname, filePath);
+  filePath = path.join(__dirname, 'src', filePath);
   
   const extname = path.extname(filePath);
   const contentType = mimeTypes[extname] || 'text/plain';

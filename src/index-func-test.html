@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 函数测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        #log { background: #0a0a1e; padding: 10px; font-family: monospace; min-height: 200px; white-space: pre-wrap; position: fixed; bottom: 0; left: 0; right: 0; height: 150px; overflow-y: auto; z-index: 9999; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="titlebar">
+            <div class="titlebar__title">
+                <img src="css/logo.png" class="titlebar__logo" alt="万遥">
+                <span>万遥客户端 - 函数测试</span>
+            </div>
+            <div class="titlebar__controls">
+                <button class="titlebar__btn" onclick="log('最小化')" title="最小化">─</button>
+                <button class="titlebar__btn" onclick="log('最大化')" title="最大化">□</button>
+                <button class="titlebar__btn titlebar__btn--close" onclick="log('关闭')" title="关闭">✕</button>
+            </div>
+        </div>
+        
+        <div class="main-wrapper">
+            <aside class="sidebar">
+                <div class="sidebar__header">
+                    <div class="sidebar__logo">
+                        <img src="css/logo.png" class="sidebar__logo-icon" alt="万遥">
+                        <span class="sidebar__logo-text">万遥</span>
+                    </div>
+                </div>
+                
+                <nav class="sidebar__nav">
+                    <div class="nav-section">
+                        <div class="nav-section__title">测试导航</div>
+                        <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                            <span class="nav-item__icon">📊</span>
+                            <span class="nav-item__text">仪表盘 (navigateTo)</span>
+                        </div>
+                        <div class="nav-item" data-page="serial" onclick="navigateTo('serial')">
+                            <span class="nav-item__icon">🔌</span>
+                            <span class="nav-item__text">串口助手 (navigateTo)</span>
+                        </div>
+                        <div class="nav-item" onclick="toggleSidebar()">
+                            <span class="nav-item__icon">◀</span>
+                            <span class="nav-item__text">收起侧边栏 (toggleSidebar)</span>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+            
+            <main class="content">
+                <div class="content__header">
+                    <h1 class="content__title">仪表盘</h1>
+                    <div class="content__actions">
+                        <button class="btn btn--ghost" onclick="toggleTheme()">🌓 切换主题</button>
+                    </div>
+                </div>
+                
+                <div class="content__body">
+                    <div id="page-dashboard" class="page active">
+                        <div style="padding: 20px;">
+                            <h2>函数测试</h2>
+                            <button onclick="log('直接 log 测试')">直接 log 测试</button>
+                            <button onclick="navigateTo('serial')">navigateTo 测试</button>
+                            <button onclick="toggleTheme()">toggleTheme 测试</button>
+                            <button onclick="toggleSidebar()">toggleSidebar 测试</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="log">日志输出:</div>
+
+    <script>
+        function log(msg) {
+            var logDiv = document.getElementById('log');
+            var time = new Date().toLocaleTimeString();
+            logDiv.textContent += '\n[' + time + '] ' + msg;
+            console.log(msg);
+        }
+        
+        log('脚本开始执行');
+        log('navigateTo 存在: ' + typeof navigateTo);
+        log('toggleSidebar 存在: ' + typeof toggleSidebar);
+        log('toggleTheme 存在: ' + typeof toggleTheme);
+    </script>
+
+    <script src="js/common.js"></script>
+    <script src="js/window-controls.js"></script>
+    
+    <script>
+        log('common.js 加载后');
+        log('navigateTo 存在: ' + typeof window.navigateTo);
+        log('toggleSidebar 存在: ' + typeof window.toggleSidebar);
+        log('toggleTheme 存在: ' + typeof window.toggleTheme);
+        
+        async function initApp() {
+            log('initApp 开始');
+            await window.detectTauriEnvironment();
+            window.initTheme();
+            log('initApp 完成');
+        }
+        
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

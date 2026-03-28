@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 排查测试3</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        #log {
+            background: #0a0a1e;
+            padding: 10px;
+            font-family: monospace;
+            min-height: 200px;
+            white-space: pre-wrap;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="titlebar">
+            <div class="titlebar__title">
+                <img src="css/logo.png" class="titlebar__logo" alt="万遥">
+                <span>万遥客户端 - 测试</span>
+            </div>
+            <div class="titlebar__controls">
+                <button class="titlebar__btn" onclick="log('最小化按钮被点击!')" title="最小化">─</button>
+                <button class="titlebar__btn" onclick="log('最大化按钮被点击!')" title="最大化">□</button>
+                <button class="titlebar__btn titlebar__btn--close" onclick="log('关闭按钮被点击!')" title="关闭">✕</button>
+            </div>
+        </div>
+        
+        <div class="main-wrapper">
+            <aside class="sidebar">
+                <nav class="sidebar__nav">
+                    <div class="nav-item active" onclick="log('导航: dashboard')">
+                        <span class="nav-item__icon">📊</span>
+                        <span class="nav-item__text">仪表盘</span>
+                    </div>
+                    <div class="nav-item" onclick="log('导航: serial')">
+                        <span class="nav-item__icon">🔌</span>
+                        <span class="nav-item__text">串口助手</span>
+                    </div>
+                </nav>
+            </aside>
+            
+            <main class="content">
+                <div class="content__header">
+                    <h1 class="content__title">测试页面</h1>
+                </div>
+                
+                <div class="content__body">
+                    <div style="padding: 20px;">
+                        <button onclick="log('普通按钮被点击!')">测试按钮 1</button>
+                        <button onclick="alert('Alert!')">测试按钮 2</button>
+                        <button id="btn3">测试按钮 3</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="log">日志输出:</div>
+
+    <script src="js/common.js"></script>
+    <script src="js/window-controls.js"></script>
+    <script>
+        function log(msg) {
+            var logDiv = document.getElementById('log');
+            var time = new Date().toLocaleTimeString();
+            logDiv.textContent += '\n[' + time + '] ' + msg;
+            console.log(msg);
+        }
+        
+        document.getElementById('btn3').addEventListener('click', function() {
+            log('按钮3被点击 (addEventListener)!');
+        });
+        
+        log('页面加载完成');
+        log('window.__TAURI__ 存在: ' + !!window.__TAURI__);
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万遥客户端 - 测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            background: #6af;
+            border: none;
+            border-radius: 5px;
+            color: white;
+        }
+        button:hover {
+            background: #59e;
+        }
+        #log {
+            background: #0a0a1e;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>万遥客户端 - 按钮测试</h1>
+    
+    <div>
+        <button onclick="testClick()">测试按钮 1</button>
+        <button onclick="alert('按钮2被点击!')">测试按钮 2 (Alert)</button>
+        <button id="btn3">测试按钮 3 (addEventListener)</button>
+    </div>
+    
+    <div id="log">日志输出:</div>
+
+    <script>
+        function log(msg) {
+            var logDiv = document.getElementById('log');
+            var time = new Date().toLocaleTimeString();
+            logDiv.textContent += '\n[' + time + '] ' + msg;
+            console.log(msg);
+        }
+        
+        function testClick() {
+            log('按钮1被点击!');
+        }
+        
+        document.getElementById('btn3').addEventListener('click', function() {
+            log('按钮3被点击 (addEventListener)!');
+        });
+        
+        log('页面加载完成');
+        log('window.__TAURI__ 存在: ' + !!window.__TAURI__);
+        
+        if (window.__TAURI__) {
+            log('__TAURI__ keys: ' + Object.keys(window.__TAURI__).join(', '));
+        }
+    </script>
+</body>
+</html>
