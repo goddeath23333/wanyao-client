@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "万遥客户端",
+  "productName": "WanyaoClient",
   "version": "1.0.0",
   "identifier": "com.wanyao.client",
   "build": {
@@ -53,6 +53,10 @@
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": "",
+      "nsis": {
+        "languages": ["SimpChinese", "English"],
+        "displayLanguageSelector": true
+      },
       "wix": {
         "language": ["zh-CN", "en-US"]
       }
