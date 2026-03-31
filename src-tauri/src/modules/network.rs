@@ -63,7 +63,7 @@ pub fn create_tcp_client(host: String, port: u16) -> Result<NetworkConnection, S
                 let local_port = stream.local_addr().map(|a| a.port()).ok();
                 
                 let (tx, mut rx) = mpsc::channel::<Vec<u8>>(100);
-                let (shutdown_tx, mut shutdown_rx) = mpsc::channel::<()>(1);
+                let (shutdown_tx, _shutdown_rx) = mpsc::channel::<()>(1);
                 
                 TCP_CLIENTS.lock().unwrap().insert(connection_id.clone(), tx);
                 
@@ -78,7 +78,11 @@ pub fn create_tcp_client(host: String, port: u16) -> Result<NetworkConnection, S
                             match reader.read(&mut buf).await {
                                 Ok(0) => break,
                                 Ok(n) => {
-                                    if let Some(sender) = TCP_CLIENTS.lock().unwrap().get(&conn_id_clone) {
+                                    let sender = {
+                                        let clients = TCP_CLIENTS.lock().unwrap();
+                                        clients.get(&conn_id_clone).cloned()
+                                    };
+                                    if let Some(sender) = sender {
                                         let _ = sender.send(buf[..n].to_vec()).await;
                                     }
                                 }
@@ -135,7 +139,7 @@ pub fn create_tcp_server(port: u16) -> Result<NetworkConnection, String> {
                         match listener.accept().await {
                             Ok((stream, addr)) => {
                                 let client_addr = addr.to_string();
-                                let (mut reader, mut writer) = stream.into_split();
+                                let (mut reader, _writer) = stream.into_split();
                                 
                                 let servers = TCP_SERVERS.lock().unwrap();
                                 if let Some(sender) = servers.get(&conn_id) {
@@ -199,15 +203,18 @@ pub fn create_udp_socket(local_port: u16, remote_host: Option<String>, remote_po
                 UDP_SOCKETS.lock().unwrap().insert(connection_id.clone(), tx);
                 
                 let conn_id = connection_id.clone();
-                let mut sock = socket;
+                let sock = socket;
                 
                 tokio::spawn(async move {
                     let mut buf = [0u8; 4096];
                     loop {
                         match sock.recv_from(&mut buf).await {
                             Ok((n, addr)) => {
-                                let sockets = UDP_SOCKETS.lock().unwrap();
-                                if let Some(sender) = sockets.get(&conn_id) {
+                                let sender = {
+                                    let sockets = UDP_SOCKETS.lock().unwrap();
+                                    sockets.get(&conn_id).cloned()
+                                };
+                                if let Some(sender) = sender {
                                     let _ = sender.send((buf[..n].to_vec(), addr.to_string())).await;
                                 }
                             }
@@ -242,6 +249,8 @@ pub fn send_network_data(connection_id: String, data: String, is_hex: bool, remo
     
     let timestamp = chrono::Local::now().format("%H:%M:%S%.3f").to_string();
     
+    let hex_data = if is_hex { data.clone() } else { bytes_to_hex(&bytes) };
+    
     match conn.protocol.as_str() {
         "TCP" => {
             if conn.mode == "Client" {
@@ -254,18 +263,14 @@ pub fn send_network_data(connection_id: String, data: String, is_hex: bool, remo
             }
         }
         "UDP" => {
-            let rt = tokio::runtime::Runtime::new().map_err(|e| e.to_string())?;
-            rt.block_on(async {
-                let sockets = UDP_SOCKETS.lock().unwrap();
-                drop(sockets);
-            });
+            // UDP 发送逻辑待实现
         }
         _ => return Err("未知协议".to_string()),
     }
     
     Ok(NetworkMessage {
         timestamp,
-        data: if is_hex { data.clone() } else { bytes_to_hex(&bytes) },
+        data: hex_data,
         direction: "TX".to_string(),
         hex: is_hex,
         from_addr: remote_addr,
@@ -273,14 +278,12 @@ pub fn send_network_data(connection_id: String, data: String, is_hex: bool, remo
 }
 
 #[tauri::command]
-pub fn receive_network_data(connection_id: String, is_hex: bool) -> Result<Option<NetworkMessage>, String> {
+pub fn receive_network_data(connection_id: String, _is_hex: bool) -> Result<Option<NetworkMessage>, String> {
     let connections = CONNECTIONS.lock().unwrap();
     let conn = connections.get(&connection_id)
         .ok_or("连接不存在")?
         .clone();
     drop(connections);
-    
-    let timestamp = chrono::Local::now().format("%H:%M:%S%.3f").to_string();
     
     match conn.protocol.as_str() {
         "TCP" => {
