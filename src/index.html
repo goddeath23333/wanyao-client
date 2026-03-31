@@ -6,412 +6,7 @@
     <title>万遥客户端</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/common.css">
-    <style>
-        .monitor-section {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .monitor-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .monitor-card__header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .monitor-card__icon {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-gradient);
-            border-radius: var(--border-radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-        
-        .monitor-card__info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .monitor-card__name {
-            font-size: 12px;
-            color: var(--text-tertiary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .monitor-card__detail {
-            font-size: 11px;
-            color: var(--text-tertiary);
-            margin-top: 2px;
-        }
-        
-        .monitor-card__usage {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-        }
-        
-        .monitor-card__value {
-            font-size: 32px;
-            font-weight: 600;
-            font-family: var(--font-mono);
-            line-height: 1;
-        }
-        
-        .monitor-card__unit {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-        
-        .monitor-card__bar {
-            height: 6px;
-            background: var(--bg-tertiary);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .monitor-card__bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.5s ease;
-        }
-        
-        .monitor-card__bar-fill.cpu {
-            background: linear-gradient(90deg, #60a5fa, #3b82f6);
-        }
-        
-        .monitor-card__bar-fill.memory {
-            background: linear-gradient(90deg, #a78bfa, #8b5cf6);
-        }
-        
-        .monitor-card__bar-fill.gpu {
-            background: linear-gradient(90deg, #fbbf24, #f59e0b);
-        }
-        
-        .chart-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: 20px;
-            margin-bottom: 24px;
-        }
-        
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .chart-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .chart-legend {
-            display: flex;
-            gap: 16px;
-        }
-        
-        .chart-legend__item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        
-        .chart-legend__dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        
-        .chart-legend__dot.cpu { background: #60a5fa; }
-        .chart-legend__dot.memory { background: #a78bfa; }
-        .chart-legend__dot.gpu { background: #fbbf24; }
-        
-        .chart-wrapper {
-            height: 180px;
-            position: relative;
-        }
-        
-        @media (max-width: 900px) {
-            .monitor-section {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .serial-assistant {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            height: 100%;
-        }
-        
-        .serial-assistant__config {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: 16px;
-        }
-        
-        .config-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        
-        .config-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 120px;
-        }
-        
-        .config-item__label {
-            font-size: 12px;
-            color: var(--text-tertiary);
-        }
-        
-        .config-item__control {
-            display: flex;
-            gap: 4px;
-        }
-        
-        .config-item__control .select {
-            flex: 1;
-        }
-        
-        .select {
-            padding: 6px 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-md);
-            color: var(--text-primary);
-            font-size: 13px;
-            cursor: pointer;
-        }
-        
-        .select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-        }
-        
-        .config-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            padding: 4px 12px;
-            border-radius: var(--border-radius-md);
-        }
-        
-        .status-indicator::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-        
-        .status-indicator--disconnected {
-            background: var(--bg-tertiary);
-            color: var(--text-tertiary);
-        }
-        
-        .status-indicator--disconnected::before {
-            background: var(--text-tertiary);
-        }
-        
-        .status-indicator--connected {
-            background: rgba(34, 197, 94, 0.1);
-            color: var(--success);
-        }
-        
-        .status-indicator--connected::before {
-            background: var(--success);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .serial-assistant__main {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            min-height: 0;
-        }
-        
-        .serial-assistant__receive,
-        .serial-assistant__send {
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            overflow: hidden;
-        }
-        
-        .receive-header,
-        .send-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-        }
-        
-        .receive-header__title,
-        .send-header__title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .receive-header__actions,
-        .send-header__actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-        
-        .checkbox-label input {
-            accent-color: var(--accent-primary);
-        }
-        
-        .btn--sm {
-            padding: 4px 10px;
-            font-size: 12px;
-        }
-        
-        .receive-area {
-            flex: 1;
-            padding: 12px;
-            font-family: var(--font-mono);
-            font-size: 13px;
-            line-height: 1.6;
-            overflow-y: auto;
-            background: var(--bg-primary);
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        
-        .receive-footer,
-        .send-actions {
-            padding: 8px 16px;
-            border-top: 1px solid var(--border-color);
-            font-size: 12px;
-            color: var(--text-tertiary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .send-area {
-            flex: 1;
-            padding: 12px;
-            font-family: var(--font-mono);
-            font-size: 13px;
-            line-height: 1.6;
-            border: none;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            resize: none;
-        }
-        
-        .send-area:focus {
-            outline: none;
-        }
-        
-        .send-area::placeholder {
-            color: var(--text-tertiary);
-        }
-        
-        .serial-assistant__quick-send {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: 12px 16px;
-        }
-        
-        .quick-send__title {
-            font-size: 12px;
-            color: var(--text-tertiary);
-            margin-bottom: 8px;
-        }
-        
-        .quick-send__buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .message-line {
-            margin-bottom: 4px;
-        }
-        
-        .message-line--tx {
-            color: var(--info);
-        }
-        
-        .message-line--rx {
-            color: var(--success);
-        }
-        
-        .message-timestamp {
-            color: var(--text-tertiary);
-            margin-right: 8px;
-        }
-        
-        .message-direction {
-            font-weight: 600;
-            margin-right: 8px;
-        }
-        
-        @media (max-width: 1000px) {
-            .serial-assistant__main {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/pages.css">
 </head>
 <body>
     <div class="app-container">
@@ -597,8 +192,8 @@
                                         <div class="card__title">网络助手</div>
                                         <div class="card__desc">TCP/UDP 网络调试工具，支持客户端和服务器模式</div>
                                         <div class="card__status">
-                                            <span class="card__status-dot warning"></span>
-                                            <span>开发中</span>
+                                            <span class="card__status-dot"></span>
+                                            <span>可用</span>
                                         </div>
                                     </div>
                                     <div class="card" onclick="navigateTo('flasher')">
@@ -752,9 +347,86 @@
                     </div>
                     
                     <div id="page-network" class="page">
-                        <div class="empty-state">
-                            <div class="empty-state__icon">🌐</div>
-                            <div class="empty-state__text">网络助手模块开发中...</div>
+                        <div class="network-assistant">
+                            <div class="network-assistant__config">
+                                <div class="config-row">
+                                    <div class="config-item">
+                                        <label class="config-item__label">协议类型</label>
+                                        <select id="networkProtocol" class="select" onchange="onProtocolChange()">
+                                            <option value="tcp-client">TCP 客户端</option>
+                                            <option value="tcp-server">TCP 服务器</option>
+                                            <option value="udp">UDP</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item" id="remoteHostItem">
+                                        <label class="config-item__label">远程主机</label>
+                                        <input type="text" id="remoteHost" class="input" placeholder="192.168.1.100" value="192.168.1.100">
+                                    </div>
+                                    <div class="config-item" id="remotePortItem">
+                                        <label class="config-item__label">远程端口</label>
+                                        <input type="number" id="remotePort" class="input" placeholder="8080" value="8080" min="1" max="65535">
+                                    </div>
+                                    <div class="config-item" id="localPortItem">
+                                        <label class="config-item__label">本地端口</label>
+                                        <input type="number" id="localPort" class="input" placeholder="8888" value="8888" min="1" max="65535">
+                                    </div>
+                                </div>
+                                <div class="config-actions">
+                                    <button id="networkConnectBtn" class="btn btn--primary" onclick="toggleNetworkConnection()">连接</button>
+                                    <span id="networkStatus" class="status-indicator status-indicator--disconnected">未连接</span>
+                                </div>
+                            </div>
+                            
+                            <div class="network-assistant__main">
+                                <div class="network-assistant__receive">
+                                    <div class="receive-header">
+                                        <span class="receive-header__title">接收区</span>
+                                        <div class="receive-header__actions">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="networkHexDisplay"> 十六进制显示
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="networkTimestampCheck" checked> 时间戳
+                                            </label>
+                                            <button class="btn btn--ghost btn--sm" onclick="clearNetworkReceiveArea()">清空</button>
+                                        </div>
+                                    </div>
+                                    <div id="networkReceiveArea" class="receive-area"></div>
+                                    <div class="receive-footer">
+                                        <span id="networkReceiveCount">接收: 0 字节</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="network-assistant__send">
+                                    <div class="send-header">
+                                        <span class="send-header__title">发送区</span>
+                                        <div class="send-header__actions">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="networkHexSend"> 十六进制发送
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="networkAppendNewlineCheck"> 追加换行
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <textarea id="networkSendArea" class="send-area" placeholder="输入要发送的数据..."></textarea>
+                                    <div class="send-actions">
+                                        <button class="btn btn--primary" onclick="sendNetworkData()">发送</button>
+                                        <span id="networkSendCount">发送: 0 字节</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="network-assistant__quick-send">
+                                <div class="quick-send__title">快捷发送</div>
+                                <div class="quick-send__buttons">
+                                    <button class="btn btn--secondary btn--sm" onclick="networkQuickSend('Hello')">Hello</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="networkQuickSend('AT')">AT</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="networkQuickSend('AT+RST')">AT+RST</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="networkQuickSend('GET / HTTP/1.1\\r\\nHost: \\r\\n\\r\\n')">HTTP GET</button>
+                                    <button class="btn btn--secondary btn--sm" onclick="networkQuickSend('PING')">PING</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -899,6 +571,7 @@
     <script src="js/system-monitor.js"></script>
     <script src="js/python-module.js"></script>
     <script src="js/serial.js"></script>
+    <script src="js/network.js"></script>
     <script>
         async function initApp() {
             await window.detectTauriEnvironment();
@@ -906,6 +579,7 @@
             window.initChart();
             window.startMonitoring();
             window.initSerialAssistant();
+            window.initNetworkAssistant();
             window.debugLog('万遥客户端已启动', 'info');
             window.debugLog('Tauri 环境: ' + (window.__TAURI__ ? '是 (全局API)' : '否'), 'info');
             window.debugLog('window.__TAURI__ 内容: ' + JSON.stringify(Object.keys(window.__TAURI__ || {})), 'info');
