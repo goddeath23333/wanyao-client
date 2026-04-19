@@ -16,7 +16,7 @@
 | 窗口控制 | 自定义标题栏、最小化/最大化/关闭 | ✅ 已实现 |
 | Python 嵌入式 | 执行 Python 代码和脚本 | ⚠️ 可选依赖 |
 | 串口助手 | 串口通信调试 | ✅ 已实现 |
-| 网络助手 | TCP/UDP 网络调试 | 🚧 规划中 |
+| 网络助手 | TCP/UDP 网络调试 | ⚠️ 部分实现 |
 | 固件烧录 | MCU 固件烧录工具 | 🚧 规划中 |
 | 数据可视化 | 实时波形显示 | 🚧 规划中 |
 | 自动化测试 | 可编程测试框架 | 🚧 规划中 |
@@ -26,7 +26,9 @@
 - 🖥️ **跨平台**: 支持 Windows、Linux、macOS
 - 🌐 **网页优先开发**: 先在浏览器预览，再编译 Tauri
 - 🔄 **CI/CD 集成**: GitHub Actions 自动构建多平台安装包
-- 🎨 **现代化 UI**: 深色主题、响应式设计
+- 🎨 **现代化 UI**: 深色/浅色主题切换、响应式设计
+- 🔌 **Web 模拟模式**: 串口/网络模块在浏览器中可模拟运行
+- 🐛 **内置调试面板**: 页面底部调试日志，捕获全局错误
 
 ## 快速开始
 
@@ -68,37 +70,42 @@ npm run tauri:build:debug
 
 ```
 wanyao-client/
-├── index.html              # 主页面
-├── css/                    # 样式目录
-│   ├── common.css         # 公共样式
-│   └── theme.css          # 主题样式
-├── js/                     # 脚本目录
-│   ├── common.js          # 公共函数
-│   ├── system-monitor.js  # 系统监控模块
-│   ├── window-controls.js # 窗口控制模块
-│   ├── python-module.js   # Python 模块
-│   └── serial.js          # 串口模块
+├── src/                    # 前端源文件
+│   ├── index.html          # 主页面
+│   ├── css/                # 样式目录
+│   │   ├── common.css      # 公共样式（含主题引入）
+│   │   ├── theme.css       # 主题变量（深色/浅色）
+│   │   └── pages.css       # 页面专属样式
+│   └── js/                 # 脚本目录
+│       ├── common.js       # 公共函数（导航、主题、工具）
+│       ├── system-monitor.js # 系统监控模块
+│       ├── window-controls.js # 窗口控制模块
+│       ├── python-module.js  # Python 模块
+│       ├── serial.js       # 串口助手模块
+│       └── network.js      # 网络助手模块
 ├── docs/                   # 文档目录
-│   ├── wsl2-setup.md      # WSL2 环境配置
-│   └── windows-setup.md   # Windows 环境配置
+│   ├── wsl2-setup.md       # WSL2 环境配置
+│   └── windows-setup.md    # Windows 环境配置
 ├── .github/workflows/      # CI/CD 配置
-│   └── build.yml          # 构建工作流
+│   └── build.yml           # 构建工作流
 ├── src-tauri/              # Tauri 后端
 │   ├── src/
-│   │   ├── main.rs        # 入口
-│   │   ├── lib.rs         # 模块注册入口
-│   │   └── modules/       # 功能模块目录
-│   │       ├── mod.rs     # 模块导出
-│   │       ├── system.rs  # 系统监控模块
-│   │       ├── python.rs  # Python 嵌入式模块
-│   │       ├── serial.rs  # 串口助手模块
-│   │       ├── network.rs # 网络助手模块
-│   │       ├── flasher.rs # 固件烧录模块
-│   │       ├── visualization.rs # 数据可视化模块
-│   │       └── tester.rs  # 自动化测试模块
-│   ├── Cargo.toml         # Rust 依赖
-│   └── tauri.conf.json    # Tauri 配置
-├── server.js               # 开发服务器
+│   │   ├── main.rs         # 入口
+│   │   ├── lib.rs          # 模块注册入口
+│   │   └── modules/        # 功能模块目录
+│   │       ├── mod.rs      # 模块导出
+│   │       ├── system.rs   # 系统监控模块
+│   │       ├── python.rs   # Python 嵌入式模块
+│   │       ├── serial.rs   # 串口助手模块
+│   │       ├── network.rs  # 网络助手模块
+│   │       ├── flasher.rs  # 固件烧录模块（占位）
+│   │       ├── visualization.rs # 数据可视化模块（占位）
+│   │       └── tester.rs   # 自动化测试模块（占位）
+│   ├── Cargo.toml          # Rust 依赖
+│   └── tauri.conf.json     # Tauri 配置
+├── scripts/                # 构建脚本
+│   └── copy-assets.js      # 前端资源复制
+├── server.js               # 开发服务器（端口 3001）
 └── package.json            # 项目配置
 ```
 
@@ -124,9 +131,9 @@ wanyao-client/
 
 项目配置了 GitHub Actions 自动构建：
 
-- **触发条件**: push 到 main/dev 分支、PR、Release
-- **构建平台**: Windows (.msi/.exe)、Linux (.deb/.AppImage)、macOS (.dmg)
-- **自动发布**: 创建 v 开头标签时自动发布 Release
+- **触发条件**: 推送 `v*` 标签或手动触发
+- **构建平台**: Windows (.msi/.exe)、Linux (.deb/.AppImage)、macOS (.dmg，双架构)
+- **自动发布**: 创建 v 开头标签时自动发布 GitHub Release
 
 ## 贡献指南
 
@@ -155,6 +162,18 @@ wanyao-client/
 - 问题反馈: [Issues](https://github.com/goddeath23333/wanyao-client/issues)
 
 ## 更新日志
+
+### v1.1.1 (2025-04-19)
+- 新增网络助手功能（部分实现）
+  - 支持 TCP 客户端/服务器模式
+  - 支持 UDP 连接创建
+  - 支持十六进制/文本收发模式
+  - 支持快捷发送功能
+  - 前端 UI 完整，Web 模拟模式可用
+  - UDP 发送逻辑待完善
+- 前端项目结构调整至 `src/` 目录
+- 新增 `pages.css` 页面专属样式
+- 新增 `scripts/copy-assets.js` 构建脚本
 
 ### v1.1.0 (2025-03-28)
 - 新增串口助手功能

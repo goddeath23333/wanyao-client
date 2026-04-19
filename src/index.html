@@ -201,8 +201,8 @@
                                         <div class="card__title">固件烧录</div>
                                         <div class="card__desc">支持 STC/STM32/ESP32 等芯片的固件烧录工具</div>
                                         <div class="card__status">
-                                            <span class="card__status-dot warning"></span>
-                                            <span>开发中</span>
+                                            <span class="card__status-dot"></span>
+                                            <span>可用</span>
                                         </div>
                                     </div>
                                     <div class="card" onclick="navigateTo('visualization')">
@@ -210,8 +210,8 @@
                                         <div class="card__title">数据可视化</div>
                                         <div class="card__desc">实时数据波形显示，支持多通道数据展示</div>
                                         <div class="card__status">
-                                            <span class="card__status-dot warning"></span>
-                                            <span>开发中</span>
+                                            <span class="card__status-dot"></span>
+                                            <span>可用</span>
                                         </div>
                                     </div>
                                     <div class="card" onclick="navigateTo('tester')">
@@ -219,8 +219,8 @@
                                         <div class="card__title">自动化测试</div>
                                         <div class="card__desc">可编程自动化测试框架，支持脚本编写和报告生成</div>
                                         <div class="card__status">
-                                            <span class="card__status-dot warning"></span>
-                                            <span>开发中</span>
+                                            <span class="card__status-dot"></span>
+                                            <span>可用</span>
                                         </div>
                                     </div>
                                 </div>
@@ -431,23 +431,203 @@
                     </div>
                     
                     <div id="page-flasher" class="page">
-                        <div class="empty-state">
-                            <div class="empty-state__icon">💾</div>
-                            <div class="empty-state__text">固件烧录模块开发中...</div>
+                        <div class="flasher-assistant">
+                            <div class="flasher-assistant__config">
+                                <div class="config-row">
+                                    <div class="config-item">
+                                        <label class="config-item__label">芯片类型</label>
+                                        <select id="flasherChipType" class="select" onchange="onChipTypeChange()">
+                                            <option value="">选择芯片类型...</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">串口</label>
+                                        <div class="config-item__control">
+                                            <select id="flasherPortSelect" class="select">
+                                                <option value="">选择串口...</option>
+                                            </select>
+                                            <button class="btn btn--ghost" onclick="refreshFlasherPorts()" title="刷新">🔄</button>
+                                        </div>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">波特率</label>
+                                        <select id="flasherBaudRate" class="select">
+                                            <option value="115200" selected>115200</option>
+                                            <option value="230400">230400</option>
+                                            <option value="460800">460800</option>
+                                            <option value="921600">921600</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">固件文件</label>
+                                        <div class="config-item__control">
+                                            <input type="text" id="flasherFirmwarePath" class="input" placeholder="固件文件路径 (.bin/.hex)">
+                                            <button class="btn btn--ghost" onclick="loadFirmwareFile()" title="加载">📂</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="flasherDetectedChip" class="flasher-info" style="display:none;"></div>
+                                <div id="flasherFirmwareInfo" class="flasher-info" style="display:none;"></div>
+                                <div class="config-actions">
+                                    <button id="flasherDetectBtn" class="btn btn--secondary" onclick="detectChip()" style="display:none;">检测芯片</button>
+                                    <button class="btn btn--primary" onclick="startFlash()">🔥 烧录</button>
+                                    <button class="btn btn--secondary" onclick="startVerify()">✓ 验证</button>
+                                    <button class="btn btn--secondary" onclick="startErase()">🗑 擦除</button>
+                                    <button class="btn btn--ghost" onclick="cancelFlash()">⏹ 取消</button>
+                                </div>
+                            </div>
+
+                            <div class="flasher-assistant__output">
+                                <div class="receive-header">
+                                    <span class="receive-header__title">输出</span>
+                                    <button class="btn btn--ghost btn--sm" onclick="clearFlashOutput()">清空</button>
+                                </div>
+                                <div id="flasherOutputArea" class="flasher-output-area"></div>
+                            </div>
                         </div>
                     </div>
                     
                     <div id="page-visualization" class="page">
-                        <div class="empty-state">
-                            <div class="empty-state__icon">📈</div>
-                            <div class="empty-state__text">数据可视化模块开发中...</div>
+                        <div class="viz-assistant">
+                            <div class="viz-assistant__sidebar">
+                                <div class="viz-section">
+                                    <div class="viz-section__title">数据通道</div>
+                                    <div class="viz-add-channel">
+                                        <input type="text" id="vizNewChannelName" class="input" placeholder="通道名称">
+                                        <input type="color" id="vizNewChannelColor" class="viz-color-picker" value="#60a5fa">
+                                        <button class="btn btn--primary btn--sm" onclick="createNewChannel()">添加</button>
+                                    </div>
+                                    <div id="vizChannelList" class="viz-channel-list"></div>
+                                </div>
+
+                                <div class="viz-section">
+                                    <div class="viz-section__title">手动输入</div>
+                                    <div class="viz-manual-input">
+                                        <select id="vizDataChannelSelect" class="select">
+                                            <option value="">选择通道...</option>
+                                        </select>
+                                        <input type="number" id="vizDataValue" class="input" placeholder="数值" step="any">
+                                        <button class="btn btn--primary btn--sm" onclick="addManualDataPoint()">添加</button>
+                                    </div>
+                                </div>
+
+                                <div class="viz-section">
+                                    <div class="viz-section__title">控制</div>
+                                    <div class="viz-controls">
+                                        <button id="vizAutoUpdateBtn" class="btn btn--primary btn--sm" onclick="toggleAutoUpdate()">开始实时更新</button>
+                                        <button id="vizSimBtn" class="btn btn--secondary btn--sm" onclick="toggleSimulation()">开始模拟</button>
+                                        <button class="btn btn--ghost btn--sm" onclick="clearAllChannelData()">清空数据</button>
+                                    </div>
+                                </div>
+
+                                <div class="viz-section">
+                                    <div class="viz-section__title">导出</div>
+                                    <div class="viz-export">
+                                        <select id="vizExportFormat" class="select">
+                                            <option value="csv">CSV</option>
+                                            <option value="json">JSON</option>
+                                        </select>
+                                        <button class="btn btn--secondary btn--sm" onclick="exportChannelData()">导出</button>
+                                    </div>
+                                    <textarea id="vizExportOutput" class="viz-export-output" style="display:none;" readonly></textarea>
+                                </div>
+                            </div>
+
+                            <div class="viz-assistant__main">
+                                <div class="viz-chart-container">
+                                    <canvas id="vizChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     <div id="page-tester" class="page">
-                        <div class="empty-state">
-                            <div class="empty-state__icon">🧪</div>
-                            <div class="empty-state__text">自动化测试模块开发中...</div>
+                        <div class="tester-assistant">
+                            <div class="tester-assistant__config">
+                                <div class="config-row">
+                                    <div class="config-item">
+                                        <label class="config-item__label">测试串口</label>
+                                        <select id="testerPortSelect" class="select">
+                                            <option value="">选择串口...</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">波特率</label>
+                                        <select id="testerBaudRate" class="select">
+                                            <option value="9600">9600</option>
+                                            <option value="115200" selected>115200</option>
+                                        </select>
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">加载脚本</label>
+                                        <div class="config-item__control">
+                                            <input type="text" id="testerScriptPath" class="input" placeholder="JSON 测试脚本路径">
+                                            <button class="btn btn--ghost" onclick="loadTestScript()" title="加载">📂</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="config-actions">
+                                    <button class="btn btn--primary" onclick="showAddTestCaseForm()">+ 添加用例</button>
+                                    <button class="btn btn--secondary" onclick="runAllTests()">▶ 执行全部</button>
+                                    <button class="btn btn--ghost" onclick="clearAllTestCases()">清空用例</button>
+                                </div>
+                            </div>
+
+                            <div id="testCaseForm" class="tester-form" style="display:none;">
+                                <div class="tester-form__title" id="testerFormTitle">添加测试用例</div>
+                                <div class="config-row">
+                                    <div class="config-item">
+                                        <label class="config-item__label">用例名称</label>
+                                        <input type="text" id="testCaseName" class="input" placeholder="例如: AT 命令测试">
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">描述</label>
+                                        <input type="text" id="testCaseDesc" class="input" placeholder="测试描述">
+                                    </div>
+                                </div>
+                                <div class="config-row">
+                                    <div class="config-item">
+                                        <label class="config-item__label">发送命令</label>
+                                        <input type="text" id="testCaseCmd" class="input" placeholder="例如: AT">
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">期望响应</label>
+                                        <input type="text" id="testCaseExpected" class="input" placeholder="例如: OK">
+                                    </div>
+                                    <div class="config-item">
+                                        <label class="config-item__label">超时(ms)</label>
+                                        <input type="number" id="testCaseTimeout" class="input" value="5000" min="100">
+                                    </div>
+                                </div>
+                                <div class="config-actions">
+                                    <button class="btn btn--primary" onclick="saveTestCase()">保存</button>
+                                    <button class="btn btn--ghost" onclick="hideTestCaseForm()">取消</button>
+                                </div>
+                            </div>
+
+                            <div class="tester-assistant__main">
+                                <div class="tester-assistant__cases">
+                                    <div class="receive-header">
+                                        <span class="receive-header__title">测试用例</span>
+                                    </div>
+                                    <div id="testCaseList" class="tester-case-list"></div>
+                                </div>
+                                <div class="tester-assistant__results">
+                                    <div class="receive-header">
+                                        <span class="receive-header__title">测试结果</span>
+                                        <div class="receive-header__actions">
+                                            <select id="testerReportFormat" class="select" style="width:auto;padding:2px 8px;font-size:12px;">
+                                                <option value="text">文本</option>
+                                                <option value="json">JSON</option>
+                                                <option value="csv">CSV</option>
+                                            </select>
+                                            <button class="btn btn--ghost btn--sm" onclick="generateTestReport()">导出报告</button>
+                                        </div>
+                                    </div>
+                                    <div id="testReportArea" class="tester-report-area"></div>
+                                    <textarea id="testerReportOutput" class="tester-report-output" style="display:none;" readonly></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -572,6 +752,9 @@
     <script src="js/python-module.js"></script>
     <script src="js/serial.js"></script>
     <script src="js/network.js"></script>
+    <script src="js/flasher.js"></script>
+    <script src="js/visualization.js"></script>
+    <script src="js/tester.js"></script>
     <script>
         async function initApp() {
             await window.detectTauriEnvironment();
@@ -580,6 +763,9 @@
             window.startMonitoring();
             window.initSerialAssistant();
             window.initNetworkAssistant();
+            window.initFlasher();
+            window.initVisualization();
+            window.initTester();
             window.debugLog('万遥客户端已启动', 'info');
             window.debugLog('Tauri 环境: ' + (window.__TAURI__ ? '是 (全局API)' : '否'), 'info');
             window.debugLog('window.__TAURI__ 内容: ' + JSON.stringify(Object.keys(window.__TAURI__ || {})), 'info');

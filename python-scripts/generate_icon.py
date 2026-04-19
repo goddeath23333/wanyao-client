@@ -3,7 +3,7 @@ import sys
 from PIL import Image
 from rembg import remove
 
-SOURCE_IMAGE = r"H:\wanyao\wanyao-client\css\logtexture\image_962346168474464.png"
+SOURCE_IMAGE = r"h:\wanyao\wanyao-client\src\css\logtexture\image_962346168474464.png"
 OUTPUT_DIR = r"H:\wanyao\wanyao-client\src-tauri\icons"
 
 ICON_SIZES = {
