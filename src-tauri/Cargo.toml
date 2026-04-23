@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "2.0.0"
+version = "2.1.0"
 description = "万遥客户端 - 一个现代化的客户端应用程序"
 authors = ["Wanyao Team"]
 license = "MIT"

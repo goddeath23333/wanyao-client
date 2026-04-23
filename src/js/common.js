@@ -161,6 +161,24 @@ function toggleSidebar() {
     }
 }
 
+var WELCOME_DISMISSED_KEY = 'wanyao-welcome-dismissed';
+
+function dismissWelcome() {
+    var guide = document.getElementById('welcomeGuide');
+    if (guide) {
+        guide.style.display = 'none';
+    }
+    localStorage.setItem(WELCOME_DISMISSED_KEY, 'true');
+}
+
+function initWelcomeGuide() {
+    var dismissed = localStorage.getItem(WELCOME_DISMISSED_KEY);
+    var guide = document.getElementById('welcomeGuide');
+    if (guide && dismissed === 'true') {
+        guide.style.display = 'none';
+    }
+}
+
 window.detectTauriEnvironment = detectTauriEnvironment;
 window.getIsTauriEnvironment = getIsTauriEnvironment;
 window.getCurrentWindowInstance = getCurrentWindowInstance;
@@ -173,4 +191,6 @@ window.getTheme = getTheme;
 window.toggleTheme = toggleTheme;
 window.navigateTo = navigateTo;
 window.toggleSidebar = toggleSidebar;
+window.dismissWelcome = dismissWelcome;
+window.initWelcomeGuide = initWelcomeGuide;
 window.THEME_KEY = THEME_KEY;

@@ -10,18 +10,6 @@
 </head>
 <body>
     <div class="app-container">
-        <div class="titlebar">
-            <div class="titlebar__title">
-                <img src="css/logo.png" class="titlebar__logo" alt="万遥">
-                <span>万遥客户端</span>
-            </div>
-            <div class="titlebar__controls">
-                <button class="titlebar__btn" onclick="minimizeWindow()" title="最小化">─</button>
-                <button class="titlebar__btn" onclick="toggleMaximizeWindow()" title="最大化">□</button>
-                <button class="titlebar__btn titlebar__btn--close" onclick="closeWindow()" title="关闭">✕</button>
-            </div>
-        </div>
-        
         <div class="main-wrapper">
             <aside class="sidebar">
                 <div class="sidebar__header">
@@ -92,6 +80,57 @@
                 <div class="content__body">
                     <div id="page-dashboard" class="page active">
                         <div class="dashboard">
+                            <div id="welcomeGuide" class="dashboard__section welcome-guide">
+                                <div class="welcome-guide__header">
+                                    <div class="welcome-guide__title">👋 欢迎使用万遥客户端</div>
+                                    <button class="btn btn--ghost btn--sm" onclick="dismissWelcome()">✕ 关闭引导</button>
+                                </div>
+                                <div class="welcome-guide__content">
+                                    <div class="welcome-guide__item" onclick="navigateTo('serial')">
+                                        <div class="welcome-guide__icon">🔌</div>
+                                        <div class="welcome-guide__info">
+                                            <div class="welcome-guide__name">串口助手</div>
+                                            <div class="welcome-guide__desc">连接串口设备，调试通信数据。支持自定义波特率、十六进制收发、时间戳等功能。</div>
+                                        </div>
+                                    </div>
+                                    <div class="welcome-guide__item" onclick="navigateTo('network')">
+                                        <div class="welcome-guide__icon">🌐</div>
+                                        <div class="welcome-guide__info">
+                                            <div class="welcome-guide__name">网络助手</div>
+                                            <div class="welcome-guide__desc">TCP/UDP 网络调试工具。支持客户端和服务器模式，方便测试网络通信。</div>
+                                        </div>
+                                    </div>
+                                    <div class="welcome-guide__item" onclick="navigateTo('flasher')">
+                                        <div class="welcome-guide__icon">💾</div>
+                                        <div class="welcome-guide__info">
+                                            <div class="welcome-guide__name">固件烧录</div>
+                                            <div class="welcome-guide__desc">支持 STC/STM32/ESP32 等芯片的固件烧录，一键烧录、验证、擦除。</div>
+                                        </div>
+                                    </div>
+                                    <div class="welcome-guide__item" onclick="navigateTo('visualization')">
+                                        <div class="welcome-guide__icon">📈</div>
+                                        <div class="welcome-guide__info">
+                                            <div class="welcome-guide__name">数据可视化</div>
+                                            <div class="welcome-guide__desc">实时波形显示，支持多通道数据、手动输入和模拟数据，可导出 CSV/JSON。</div>
+                                        </div>
+                                    </div>
+                                    <div class="welcome-guide__item" onclick="navigateTo('tester')">
+                                        <div class="welcome-guide__icon">🧪</div>
+                                        <div class="welcome-guide__info">
+                                            <div class="welcome-guide__name">自动化测试</div>
+                                            <div class="welcome-guide__desc">创建测试用例，批量执行并生成测试报告。支持文本/JSON/CSV 格式导出。</div>
+                                        </div>
+                                    </div>
+                                    <div class="welcome-guide__item" onclick="navigateTo('settings')">
+                                        <div class="welcome-guide__icon">⚙️</div>
+                                        <div class="welcome-guide__info">
+                                            <div class="welcome-guide__name">设置</div>
+                                            <div class="welcome-guide__desc">切换深色/浅色主题，检查 Python 环境（可选），查看版本信息。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="dashboard__section">
                                 <div class="dashboard__section-title">系统监控</div>
                                 <div class="monitor-section">
@@ -650,13 +689,13 @@
                             <div class="dashboard__section">
                                 <div class="dashboard__section-title">Python 环境</div>
                                 <div class="stat-card">
-                                    <div class="stat-card__label">嵌入式 Python</div>
+                                    <div class="stat-card__label">嵌入式 Python（可选功能，需要 Python 3.x 环境）</div>
                                     <div style="margin-top: 12px;">
                                         <button class="btn btn--primary" onclick="checkPythonVersion()">检查版本</button>
                                         <button class="btn btn--secondary" onclick="runPythonTest()" style="margin-left: 8px;">运行测试</button>
                                     </div>
-                                    <div id="pythonOutput" style="margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--border-radius-md); font-family: var(--font-mono); font-size: 13px; min-height: 60px;">
-                                        点击按钮检查 Python 环境
+                                    <div id="pythonOutput" style="margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--border-radius-md); font-family: var(--font-mono); font-size: 13px; min-height: 60px; line-height: 1.6;">
+                                        点击"检查版本"检测 Python 环境。⚠️ 未安装 Python 不影响其他功能使用。
                                     </div>
                                 </div>
                             </div>
@@ -665,7 +704,7 @@
                                 <div class="dashboard__section-title">关于</div>
                                 <div class="stat-card">
                                     <div class="stat-card__label">版本信息</div>
-                                    <div class="stat-card__value" style="font-size: 16px; margin-top: 8px;">万遥客户端 v2.0.0</div>
+                                    <div class="stat-card__value" style="font-size: 16px; margin-top: 8px;">万遥客户端 v2.1.0</div>
                                     <div style="color: var(--text-tertiary); font-size: 13px; margin-top: 8px;">
                                         基于 Tauri 框架构建的嵌入式开发工具
                                     </div>
@@ -747,7 +786,6 @@
     </script>
 
     <script src="js/common.js"></script>
-    <script src="js/window-controls.js"></script>
     <script src="js/system-monitor.js"></script>
     <script src="js/python-module.js"></script>
     <script src="js/serial.js"></script>
@@ -759,6 +797,7 @@
         async function initApp() {
             await window.detectTauriEnvironment();
             window.initTheme();
+            window.initWelcomeGuide();
             window.initChart();
             window.startMonitoring();
             window.initSerialAssistant();

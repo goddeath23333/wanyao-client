@@ -8,7 +8,7 @@
 
 html, body {
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
     background: transparent;
 }
 
@@ -21,68 +21,9 @@ body {
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     background: var(--bg-primary);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.titlebar {
-    height: var(--titlebar-height);
-    background: var(--bg-tertiary);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 12px;
-    -webkit-app-region: drag;
-    border-bottom: 1px solid var(--border-color);
-    z-index: 100;
-}
-
-.titlebar__title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.titlebar__logo {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-}
-
-.titlebar__controls {
-    display: flex;
-    gap: 2px;
-    -webkit-app-region: no-drag;
-}
-
-.titlebar__btn {
-    width: 36px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--border-radius-sm);
-    transition: all 0.2s;
-}
-
-.titlebar__btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-
-.titlebar__btn--close:hover {
-    background: var(--error);
-    color: white;
+    overflow: auto;
 }
 
 .main-wrapper {
